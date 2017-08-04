@@ -4,28 +4,18 @@
 ### Copyright (C) 2017 Nickolas Burr
 ###
 
-INCDIR=include
 CC=gcc
-CFLAGS=-I$(INCDIF)
+INCDIR=include
+CFLAGS=-c -Wall -I$(INCDIR)
+LDFLAGS=
+SOURCES=src/daemon.c src/main.c
+OBJECTS=$(SOURCES:.c=.o)
+EXECUTABLE=git-stashd
 
-OBJDIR=obj
-LIBDIR=lib
+all: $(SOURCES) $(EXECUTABLE)
 
-LIBS=-lm
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-_DEPS = common.h daemon.h
-DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
-
-_OBJ = daemon.c main.c
-OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
-
-$(OBJDIR)/%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-git-stashd: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS) $(LIBS)
-
-.PHONY: clean
-
-clean:
-	rm -f $(OBJDIR)/*.o *~ core $(INCDIR)/*~
+daemon.o:
+	$(CC) $(CFLAGS) $< -o $@
