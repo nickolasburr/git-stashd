@@ -6,9 +6,10 @@
 
 CC=gcc
 INCDIR=include
+SRCDIR=src
 CFLAGS=-c -Wall -I$(INCDIR)
 LDFLAGS=
-SOURCES=src/daemon.c src/main.c
+SOURCES=$(SRCDIR)/daemon.c $(SRCDIR)/usage.c $(SRCDIR)/main.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=git-stashd
 
@@ -17,5 +18,7 @@ all: $(SOURCES) $(EXECUTABLE)
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
-daemon.o:
-	$(CC) $(CFLAGS) $< -o $@
+.PHONY: clean
+
+clean:
+	rm -f $(SRCDIR)/*.o
