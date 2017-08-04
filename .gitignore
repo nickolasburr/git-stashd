@@ -1,1 +1,5 @@
+# Object files
+*.o
+
+# Miscellaneous
 *.sw[po]
