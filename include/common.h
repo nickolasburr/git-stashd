@@ -4,8 +4,8 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef GIT_STASHD_COMMON_H
+#define GIT_STASHD_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
