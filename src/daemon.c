@@ -7,7 +7,41 @@
 #include "common.h"
 #include "daemon.h"
 
-void stashd () {
+/**
+ * Determine if a pathname points to a valid directory.
+ *
+ * @notes Adapted from https://goo.gl/ZmWfbx
+ */
+int is_dir (const char *path) {
+	DIR *dp = opendir(path);
+
+	struct dirent *de;
+
+	int is_dir;
+
+	while ((de = readdir(dp))) {
+	#ifdef _DIRENT_HAVE_D_TYPE
+		if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
+			is_dir = (de->d_type == DT_DIR) ? 1: 0;
+		} else
+	#endif
+		{
+			struct stat statbuf;
+
+			stat(de->d_name, &statbuf);
+
+			is_dir = S_ISDIR(statbuf.st_mode);
+		}
+
+		if (is_dir) {
+			printf("%s/\n", de->d_name);
+		}
+	}
+
+	return is_dir;
+}
+
+void stashd (const char *path) {
 	int x;
 
 	pid_t pid = fork();
@@ -39,7 +73,9 @@ void stashd () {
 
 	umask(0);
 
-	chdir("/var/log");
+	// is_dir(path);
+
+	// chdir(path);
 
 	for (x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
 		close(x);
