@@ -9,7 +9,7 @@ INCDIR=include
 SRCDIR=src
 CFLAGS=-c -Wall -I$(INCDIR)
 LDFLAGS=
-SOURCES=$(SRCDIR)/daemon.c $(SRCDIR)/usage.c $(SRCDIR)/main.c
+SOURCES=$(SRCDIR)/argv.c $(SRCDIR)/daemon.c $(SRCDIR)/usage.c $(SRCDIR)/main.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=git-stashd
 
