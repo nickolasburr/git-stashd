@@ -7,4 +7,8 @@
 #ifndef GIT_STASHD_ARGV_H
 #define GIT_STASHD_ARGV_H
 
+#include <string.h>
+
+int in_array();
+
 #endif

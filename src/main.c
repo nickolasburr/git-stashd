@@ -5,13 +5,23 @@
  */
 
 #include "common.h"
+#include "argv.h"
 #include "daemon.h"
 #include "usage.h"
 
 int main (int argc, char *argv[]) {
 	int i;
 
-	pfusage();
+	/**
+	 * If the `--help` option was given, display usage details and exit
+	 */
+	if (in_array(GIT_STASHD_USAGE_OPT, argv, argc)) {
+		pfusage();
+
+		printf("%d\n", is_dir("/var/log"));
+
+		exit(EXIT_SUCCESS);
+	}
 
 	/**
 	 * Start daemon process
@@ -27,16 +37,20 @@ int main (int argc, char *argv[]) {
 
 	if (!fp) {
 		printf("Error opening file %s\n", GIT_STASHD_LOG_FILE);
+
 		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
 		fprintf(fp, "git-stashd started.\n");
+
 		sleep(10);
+
 		break;
 	}
 
 	fprintf(fp, "git-stashd terminated.\n");
+
 	fclose(fp);
 
 	return EXIT_SUCCESS;

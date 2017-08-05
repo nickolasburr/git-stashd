@@ -9,8 +9,15 @@
 
 #include <stdio.h>
 
-#define GIT_STASHD_USAGE_MESSAGE "git stashd [OPTIONS]"
+#define GIT_STASHD_USAGE_MSG "git stashd [OPTIONS]"
+#define GIT_STASHD_USAGE_OPT "--help"
+
+#define GIT_STASHD_NUM_OPTS  4
+
+const char* const options[GIT_STASHD_NUM_OPTS];
+size_t size;
+int pfindent;
 
 void pfusage();
 
-#endif
+#endif /* GIT_STASHD_USAGE_H */
