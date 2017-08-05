@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define GIT_STASHD_LOGFILE "git-stashd.log"
+#define GIT_STASHD_LOG_FILE "git-stashd.log"
+#define GIT_STASHD_LOG_MODE "a+"
 
 #endif
