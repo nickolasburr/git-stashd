@@ -9,7 +9,8 @@
 
 #include <stdio.h>
 
-#define GIT_STASHD_USAGE_MESSAGE "git stashd [OPTIONS]"
+#define GIT_STASHD_USAGE_MSG "git stashd [OPTIONS]"
+#define GIT_STASHD_USAGE_OPT "--help"
 
 void pfusage();
 
