@@ -10,5 +10,5 @@
  * Print formatted usage message
  */
 void pfusage () {
-	printf("%s\n", GIT_STASHD_USAGE_MESSAGE);
+	printf("%s\n", GIT_STASHD_USAGE_MSG);
 }
