@@ -5,18 +5,28 @@
  */
 
 #include "common.h"
+#include "daemon.h"
+#include "usage.h"
 
-int main () {
+int main (int argc, char *argv[]) {
+	int i;
+
+	pfusage();
 
 	/**
 	 * Start daemon process
 	 */
-	stashd();
+	// stashd();
 
-	FILE *fp = fopen(GIT_STASHD_LOGFILE, "a+");
+	for (i = 0; i < argc; i += 1) {
+		const char *flag = argv[i];
+		printf("%s\n", flag);
+	}
 
-	if (fp == NULL) {
-		printf("Error opening file %s\n", GIT_STASHD_LOGFILE);
+	FILE *fp = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+
+	if (!fp) {
+		printf("Error opening file %s\n", GIT_STASHD_LOG_FILE);
 		exit(EXIT_FAILURE);
 	}
 
