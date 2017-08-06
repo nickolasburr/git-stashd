@@ -1,3 +1,7 @@
 # git-stashd(1)
 
-`git-stashd` provides autostashing capabilities in Git, running as a daemon to stash the contents of a dirty working tree at a set interval.
+`git-stashd` is an autostashing daemon for Git.
+
+## How it works
+
+`git-stashd` runs at a given interval, stashing the contents of a dirty working tree.
