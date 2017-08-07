@@ -9,6 +9,7 @@
 
 #include <string.h>
 
-int in_array();
+int opt_get_index();
+int opt_in_array();
 
 #endif

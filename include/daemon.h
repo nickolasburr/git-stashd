@@ -14,6 +14,9 @@
 
 int is_dir(const char *path);
 int is_repo(const char *path);
-void stashd(const char *path);
+
+pid_t start_daemon(const char *path);
+void stop_daemon(pid_t pid);
+int write_log_entry();
 
 #endif
