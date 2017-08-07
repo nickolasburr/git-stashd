@@ -14,9 +14,7 @@
  */
 int is_dir (const char *path) {
 	DIR *dp = opendir(path);
-
 	struct dirent *de;
-
 	int is_dir;
 
 	while ((de = readdir(dp))) {
@@ -41,10 +39,11 @@ int is_dir (const char *path) {
 	return is_dir;
 }
 
-void stashd (const char *path) {
+pid_t start_daemon (const char *path) {
 	int x;
+	pid_t pid;
 
-	pid_t pid = fork();
+	pid = fork();
 
 	if (pid < 0) {
 		exit(EXIT_FAILURE);
@@ -73,11 +72,36 @@ void stashd (const char *path) {
 
 	umask(0);
 
-	// is_dir(path);
-
-	// chdir(path);
-
 	for (x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
 		close(x);
 	}
+
+	return pid;
+}
+
+void stop_daemon (pid_t pid) {
+	kill(pid, SIGKILL);
+}
+
+int write_log_entry () {
+	FILE *fp = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+
+	if (!fp) {
+		printf("Error opening file %s\n", GIT_STASHD_LOG_FILE);
+
+		exit(EXIT_FAILURE);
+	}
+
+	while (1) {
+		fprintf(fp, "git-stashd started.\n");
+
+		sleep(10);
+
+		break;
+	}
+
+	fprintf(fp, "git-stashd terminated.\n");
+	fclose(fp);
+
+	return EXIT_SUCCESS;
 }
