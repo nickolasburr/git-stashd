@@ -8,9 +8,24 @@
 #include "argv.h"
 
 /**
- * Check if element exists in array
+ * Get index of option string in array
  */
-int in_array (const char* const option, const char *arr[], size_t size) {
+int opt_get_index (const char* const option, const char *arr[], size_t size) {
+	int i;
+
+	for (i = 0; i < size; i += 1) {
+		if (!strcmp(arr[i], option)) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * Check if option exists in array
+ */
+int opt_in_array (const char* const option, const char *arr[], size_t size) {
 	int i;
 
 	for (i = 0; i < size; i += 1) {
