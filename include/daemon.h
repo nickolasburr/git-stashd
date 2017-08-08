@@ -12,11 +12,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+struct repo_info {
+	char *path;
+	long *pid;
+};
+
 int is_dir(const char *path);
 int is_repo(const char *path);
 
-pid_t start_daemon(const char *path);
-void stop_daemon(pid_t pid);
+long **start_daemon(const char *path, long **pid);
+void stop_daemon(long *pid);
 int write_log_entry();
 
 #endif
