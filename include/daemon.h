@@ -12,16 +12,24 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef __APPLE__
+#include <limits.h>
+#else
+#include <linux/limits.h>
+#endif
+
 struct repo_info {
 	char *path;
-	long *pid;
+	long pid;
 };
 
 int is_dir(const char *path);
 int is_repo(const char *path);
 
-long **start_daemon(const char *path, long **pid);
+void start_daemon(const char *repo_path, long *pid);
 void stop_daemon(long *pid);
-int write_log_entry();
+
+FILE *get_log_file(char *filename, char *filemode);
+int write_log_file(char *filename, char *filemode);
 
 #endif
