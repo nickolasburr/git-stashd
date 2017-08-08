@@ -10,8 +10,11 @@
 #include "usage.h"
 
 int main (int argc, char *argv[]) {
-	int opt_index, path_index;
-	char *pathname;
+	FILE *fp;
+	int oindex, pindex;
+	long pid;
+	char *path;
+	struct repo_info *repo_info;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
@@ -36,28 +39,32 @@ int main (int argc, char *argv[]) {
 		if (opt_in_array("--repository-path", argv, argc)) {
 
 			// `--repository-path` index in `argv`
-			opt_index  = opt_get_index("--repository-path", argv, argc);
-			path_index = (opt_index + 1);
-			pathname   = argv[path_index];
+			oindex  = opt_get_index("--repository-path", argv, argc);
+			pindex = (oindex + 1);
+			path   = argv[pindex];
 
-			// Die if `pathname` is not a valid directory
-			if (!is_dir(pathname)) {
-				printf("%s is not a valid directory!\n", pathname);
+			// Die if `path` is not a valid directory
+			if (!is_dir(path)) {
+				printf("%s is not a valid directory!\n", path);
 
 				exit(EXIT_FAILURE);
 			} else {
-				struct repo_info *repo_info = malloc(sizeof(*repo_info));
-				long *pid;
+				repo_info = (struct repo_info *) malloc(sizeof(struct repo_info));
+				fp = get_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 
-				start_daemon(pathname, &pid);
+				repo_info->path = path;
+				fprintf(fp, "main -> path -> %s\n", path);
 
-				repo_info->path = pathname;
+				start_daemon(path, &pid);
+				write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+
+				repo_info->path = path;
 				repo_info->pid  = pid;
 
-				printf("main -> pid      -> %ld\n", *pid);
-				printf("main -> pathname -> %s\n", pathname);
+				fprintf(fp, "main -> pid  -> %ld\n", pid);
 
 				free(repo_info);
+				fclose(fp);
 			}
 		}
 	}
