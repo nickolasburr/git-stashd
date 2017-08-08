@@ -9,11 +9,6 @@
 #include "daemon.h"
 #include "usage.h"
 
-static struct {
-	char *path;
-	pid_t pid;
-} repo_info;
-
 int main (int argc, char *argv[]) {
 	int opt_index, path_index;
 	char *pathname;
@@ -23,8 +18,6 @@ int main (int argc, char *argv[]) {
 	 */
 	if (opt_in_array(GIT_STASHD_USAGE_OPT, argv, argc)) {
 		pfusage();
-
-		printf("%d\n", is_dir("/var/log"));
 
 		exit(EXIT_SUCCESS);
 	}
@@ -52,12 +45,20 @@ int main (int argc, char *argv[]) {
 				printf("%s is not a valid directory!\n", pathname);
 
 				exit(EXIT_FAILURE);
+			} else {
+				struct repo_info *repo_info = malloc(sizeof(*repo_info));
+				long *pid;
+
+				start_daemon(pathname, &pid);
+
+				repo_info->path = pathname;
+				repo_info->pid  = pid;
+
+				printf("main -> pid      -> %ld\n", *pid);
+				printf("main -> pathname -> %s\n", pathname);
+
+				free(repo_info);
 			}
-
-			repo_info.path = pathname;
-			repo_info.pid  = start_daemon(pathname);
-
-			printf("%s\n", pathname);
 		}
 	}
 

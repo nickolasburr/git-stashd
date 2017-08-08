@@ -13,37 +13,49 @@
  * @notes Adapted from https://goo.gl/ZmWfbx
  */
 int is_dir (const char *path) {
-	DIR *dp = opendir(path);
+	DIR *dp;
 	struct dirent *de;
 	int is_dir;
+
+	char actualpath[PATH_MAX], *ptr;
+
+	if (!(dp = opendir(path))) {
+		return 0;
+	}
+
+	ptr = realpath(path, actualpath);
+	printf("is_dir -> path -> %s\n", ptr);
 
 	while ((de = readdir(dp))) {
 	#ifdef _DIRENT_HAVE_D_TYPE
 		if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
-			is_dir = (de->d_type == DT_DIR) ? 1: 0;
+			is_dir = (de->d_type == DT_DIR) ? 1 : 0;
 		} else
 	#endif
 		{
 			struct stat statbuf;
 
 			stat(de->d_name, &statbuf);
-
 			is_dir = S_ISDIR(statbuf.st_mode);
 		}
 
 		if (is_dir) {
 			printf("%s/\n", de->d_name);
+
+			return 1;
 		}
 	}
 
-	return is_dir;
+	return 0;
 }
 
-pid_t start_daemon (const char *path) {
+/**
+ * Start daemon process
+ */
+long **start_daemon (const char *path, long **pid) {
 	int x;
-	pid_t pid;
 
-	pid = fork();
+	pid = (long**) fork();
 
 	if (pid < 0) {
 		exit(EXIT_FAILURE);
@@ -60,7 +72,7 @@ pid_t start_daemon (const char *path) {
 	signal(SIGCHLD, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 
-	pid = fork();
+	pid = (long**) fork();
 
 	if (pid < 0) {
 		exit(EXIT_FAILURE);
@@ -76,13 +88,21 @@ pid_t start_daemon (const char *path) {
 		close(x);
 	}
 
+	printf("start_daemon -> pid -> %lu\n", **pid);
+
 	return pid;
 }
 
-void stop_daemon (pid_t pid) {
-	kill(pid, SIGKILL);
+/**
+ * Kill daemon process
+ */
+void stop_daemon (long *pid) {
+	kill((long) *pid, SIGKILL);
 }
 
+/**
+ * Write to log file
+ */
 int write_log_entry () {
 	FILE *fp = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 
@@ -94,8 +114,7 @@ int write_log_entry () {
 
 	while (1) {
 		fprintf(fp, "git-stashd started.\n");
-
-		sleep(10);
+		sleep(20);
 
 		break;
 	}
