@@ -103,20 +103,35 @@ void stop_daemon (long *pid) {
 }
 
 /**
- * Write to log file
+ * Get pointer to log file
  */
-int write_log_entry () {
-	FILE *fp = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+FILE *get_log_file (char *filename, char *filemode) {
+	FILE *fp = fopen(filename, filemode);
 
 	if (!fp) {
-		printf("Error opening file %s\n", GIT_STASHD_LOG_FILE);
+		printf("Error opening file %s\n", filename);
 
 		exit(EXIT_FAILURE);
 	}
 
+	// Return pointer ref to caller
+	return fp;
+}
+
+/**
+ * Write to log file
+ */
+int write_log_file (char *filename, char *filemode) {
+	FILE *fp = get_log_file(filename, filemode);
+
+	/**
+	 * We'll skip error checking explicitly,
+	 * as it's addressed in `get_log_file` and
+	 * will exit if an error is encountered.
+	 */
 	while (1) {
 		fprintf(fp, "git-stashd started.\n");
-		sleep(20);
+		sleep(10);
 
 		break;
 	}
