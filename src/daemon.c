@@ -52,16 +52,17 @@ int is_dir (const char *path) {
 /**
  * Start daemon process
  */
-long **start_daemon (const char *path, long **pid) {
+void start_daemon (const char *repo_path, long *pid) {
 	int x;
+	pid_t fpid;
 
-	pid = (long**) fork();
+	fpid = fork();
 
-	if (pid < 0) {
+	if (fpid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (pid > 0) {
+	if (fpid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
@@ -72,13 +73,13 @@ long **start_daemon (const char *path, long **pid) {
 	signal(SIGCHLD, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 
-	pid = (long**) fork();
+	fpid = fork();
 
-	if (pid < 0) {
+	if (fpid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (pid > 0) {
+	if (fpid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
@@ -88,9 +89,10 @@ long **start_daemon (const char *path, long **pid) {
 		close(x);
 	}
 
-	printf("start_daemon -> pid -> %lu\n", **pid);
+	chdir(repo_path);
 
-	return pid;
+	// Update PID value
+	*pid = (long) fpid;
 }
 
 /**
