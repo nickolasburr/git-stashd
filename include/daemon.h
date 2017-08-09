@@ -26,7 +26,7 @@ struct repo_info {
 int is_dir(const char *path);
 int is_repo(const char *path);
 
-void start_daemon(const char *repo_path, long *pid);
+void start_daemon(const char *repo, long *pid);
 void stop_daemon(long *pid);
 
 FILE *get_log_file(char *filename, char *filemode);
