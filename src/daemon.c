@@ -4,6 +4,7 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
+#include "argv.h"
 #include "common.h"
 #include "daemon.h"
 
