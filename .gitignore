@@ -1,5 +1,9 @@
-# Object files
+*.a
 *.o
-
-# Miscellaneous
 *.sw[po]
+
+build/*
+!build/.gitkeep
+
+lib/*
+!lib/.gitkeep
