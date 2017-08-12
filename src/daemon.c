@@ -4,6 +4,7 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
+#include "argv.h"
 #include "common.h"
 #include "daemon.h"
 
@@ -52,7 +53,7 @@ int is_dir (const char *path) {
 /**
  * Start daemon process
  */
-void start_daemon (const char *repo_path, long *pid) {
+void start_daemon (const char *repo, long *pid) {
 	int x;
 	pid_t fpid;
 
@@ -89,9 +90,8 @@ void start_daemon (const char *repo_path, long *pid) {
 		close(x);
 	}
 
-	chdir(repo_path);
+	chdir(repo);
 
-	// Update PID value
 	*pid = (long) fpid;
 }
 
@@ -114,7 +114,6 @@ FILE *get_log_file (char *filename, char *filemode) {
 		exit(EXIT_FAILURE);
 	}
 
-	// Return pointer ref to caller
 	return fp;
 }
 
