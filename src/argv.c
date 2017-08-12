@@ -4,14 +4,14 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#include "common.h"
 #include "argv.h"
+#include "common.h"
 
 /**
  * Get index of option string in array
  */
 int opt_get_index (const char* const option, const char *arr[], size_t size) {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
 		if (!strcmp(arr[i], option)) {
@@ -26,7 +26,7 @@ int opt_get_index (const char* const option, const char *arr[], size_t size) {
  * Check if option exists in array
  */
 int opt_in_array (const char* const option, const char *arr[], size_t size) {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
 		if (!strcmp(arr[i], option)) {
@@ -35,4 +35,25 @@ int opt_in_array (const char* const option, const char *arr[], size_t size) {
 	}
 
 	return 0;
+}
+
+/**
+ * Print formatted usage message to stdout
+ */
+void pfusage () {
+	unsigned int i;
+	int pfindent = 5;
+	const char* const options[GIT_STASHD_OPT_COUNT] = {
+		"--help",
+		"--daemon",
+		"--interval",
+		"--repository-path",
+	};
+	size_t size = (sizeof(options) / sizeof(options[0]));
+
+	printf("%s\n\nOptions:\n\n", GIT_STASHD_OPT_HELP_M);
+
+	for (i = 0; i < size; i += 1) {
+		printf("%*s %s\n", pfindent, "", options[i]);
+	}
 }
