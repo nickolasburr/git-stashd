@@ -7,7 +7,6 @@
 #include "argv.h"
 #include "common.h"
 #include "daemon.h"
-#include "git2.h"
 
 int main (int argc, char *argv[]) {
 	FILE *fp;
