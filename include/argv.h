@@ -23,7 +23,7 @@
 #define GIT_STASHD_OPT_DAEMON_S "-D"
 
 #define GIT_STASHD_OPT_REPOPATH_L "--repository-path"
-#define GIT_STASHD_OPT_REPOPATH_S "-R"
+#define GIT_STASHD_OPT_REPOPATH_S "-P"
 
 #define GIT_STASHD_OPT_INTERVAL_L "--interval"
 #define GIT_STASHD_OPT_INTERVAL_S "-I"
