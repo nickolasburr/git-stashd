@@ -28,4 +28,4 @@ $(TARGET): $(CSFILES)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	$(RM) $(RMFLAGS) $(OBJECTS)/*.o $(SOURCES)/*.o $(TARGET) $(TARGET).log
+	$(RM) $(RMFLAGS) $(OBJECTS)/*.o $(SOURCES)/*.o $(TARGET) $(TARGET).log $(TARGET).dSYM
