@@ -18,12 +18,12 @@ struct stash {
 
 struct repo {
 	char *path;
-	struct stash stashes[];
+	struct stash *stashes;
 };
 
-struct stash *get_stashes(struct repo *repo);
-void set_stashes(struct repo *repo);
+struct stash *get_stashes(struct repo *r);
+void set_stashes(struct repo *r);
 
-int has_worktree_changed(struct repo *repo);
+int has_worktree_changed(struct repo *r);
 
 #endif /* GIT_STASHD_REPO_H */
