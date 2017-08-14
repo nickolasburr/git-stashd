@@ -13,10 +13,4 @@
 #include "fs.h"
 #include "repo.h"
 
-FILE *fp;
-int opt_index, arg_index, daemonize;
-long pid;
-char *pathname, *logfile;
-char cwd[PATH_MAX];
-
 #endif /* GIT_STASHD_MAIN_H */
