@@ -7,6 +7,10 @@
 #include "main.h"
 
 int main (int argc, char *argv[]) {
+	int opt_index, arg_index, daemonize;
+	char *pathname;
+	char cwd[PATH_MAX];
+	struct repo *repo;
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
@@ -27,7 +31,9 @@ int main (int argc, char *argv[]) {
 	}
 
 	/**
-	 * Check for `--repository-path` option and argument.
+	 * Check if `--repository-path` (`-P`) option was given. If so,
+	 * check if a pathname was given as an option argument. If not,
+	 * attempt to use `cwd` as the --repository-path pathname.
 	 */
 	if (opt_in_array(GIT_STASHD_OPT_REPOPATH_L, argv, argc) ||
 	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
@@ -83,6 +89,19 @@ int main (int argc, char *argv[]) {
 
 		printf("--repository-path option not given, main -> pathname -> %s\n", pathname);
 	}
+
+	/**
+	 * Create struct for storing Git repository information.
+	 */
+	repo = malloc(sizeof(*repo));
+	repo->path = malloc(sizeof(char[PATH_MAX]));
+	repo->stashes = malloc(sizeof(struct stash *));
+
+	strcpy(repo->path, "something");
+
+	set_stashes(&repo);
+
+	free(repo);
 
 	if (daemonize) {
 		fork_proc();
