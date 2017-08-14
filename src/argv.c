@@ -5,7 +5,6 @@
  */
 
 #include "argv.h"
-#include "common.h"
 
 /**
  * Get index of option string in array

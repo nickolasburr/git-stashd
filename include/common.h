@@ -7,10 +7,13 @@
 #ifndef GIT_STASHD_COMMON_H
 #define GIT_STASHD_COMMON_H
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#define _GNU_SOURCE
+
+#define NOOPT_FOUND_V -1
+#define CLEAN_CATCH_V -2
 
 #endif

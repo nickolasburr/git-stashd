@@ -4,66 +4,21 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#include "argv.h"
-#include "common.h"
 #include "daemon.h"
 
 /**
- * Determine if a pathname points to a valid directory.
- *
- * @notes Adapted from https://goo.gl/ZmWfbx
+ * Fork parent process and run in detached daemon mode.
  */
-int is_dir (const char *path) {
-	DIR *dp;
-	struct dirent *de;
-	int is_dir;
-
-	char actualpath[PATH_MAX], *ptr;
-
-	if (!(dp = opendir(path))) {
-		return 0;
-	}
-
-	ptr = realpath(path, actualpath);
-	printf("is_dir -> path -> %s\n", ptr);
-
-	while ((de = readdir(dp))) {
-	#ifdef _DIRENT_HAVE_D_TYPE
-		if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
-			is_dir = (de->d_type == DT_DIR) ? 1 : 0;
-		} else
-	#endif
-		{
-			struct stat statbuf;
-
-			stat(de->d_name, &statbuf);
-			is_dir = S_ISDIR(statbuf.st_mode);
-		}
-
-		if (is_dir) {
-			printf("%s/\n", de->d_name);
-
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-/**
- * Start daemon process
- */
-void start_daemon (const char *repo, long *pid) {
+void fork_proc (void) {
 	int x;
-	pid_t fpid;
 
-	fpid = fork();
+	pid_t pid = fork();
 
-	if (fpid < 0) {
+	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (fpid > 0) {
+	if (pid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
@@ -74,13 +29,13 @@ void start_daemon (const char *repo, long *pid) {
 	signal(SIGCHLD, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
 
-	fpid = fork();
+	pid = fork();
 
-	if (fpid < 0) {
+	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (fpid > 0) {
+	if (pid > 0) {
 		exit(EXIT_SUCCESS);
 	}
 
@@ -89,29 +44,16 @@ void start_daemon (const char *repo, long *pid) {
 	for (x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
 		close(x);
 	}
-
-	chdir(repo);
-
-	*pid = (long) fpid;
-}
-
-/**
- * Kill daemon process
- */
-void stop_daemon (long *pid) {
-	kill((long) *pid, SIGKILL);
 }
 
 /**
  * Get pointer to log file
  */
 FILE *get_log_file (char *filename, char *filemode) {
-	FILE *fp = fopen(filename, filemode);
+	FILE *fp = get_file(filename, filemode);
 
 	if (!fp) {
-		printf("Error opening file %s\n", filename);
-
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 
 	return fp;
@@ -120,23 +62,27 @@ FILE *get_log_file (char *filename, char *filemode) {
 /**
  * Write to log file
  */
-int write_log_file (char *filename, char *filemode) {
+void write_log_file (char *filename, char *filemode) {
 	FILE *fp = get_log_file(filename, filemode);
+	pid_t pid = getpid();
+
+	if (!fp) {
+		// @todo: Use `openlog` to make an entry in
+		// syslog, if we're detached from a tty.
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(fp, "Starting git-stashd daemon with PID %lu.\n", (unsigned long) pid);
 
 	/**
-	 * We'll skip error checking explicitly,
-	 * as it's addressed in `get_log_file` and
-	 * will exit if an error is encountered.
+	 * Run a check against the stash every `interval` minutes.
 	 */
 	while (1) {
-		fprintf(fp, "git-stashd started.\n");
-		sleep(10);
+		sleep(30);
 
 		break;
 	}
 
-	fprintf(fp, "git-stashd terminated.\n");
+	fprintf(fp, "Stopping git-stashd daemon with PID %lu.\n", (unsigned long) pid);
 	fclose(fp);
-
-	return EXIT_SUCCESS;
 }

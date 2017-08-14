@@ -4,17 +4,9 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#include "argv.h"
-#include "common.h"
-#include "daemon.h"
+#include "main.h"
 
 int main (int argc, char *argv[]) {
-	FILE *fp;
-	int opt_index, arg_index, daemonize;
-	long pid;
-	char *pathname;
-	struct repo_info *repo_info;
-
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
@@ -26,26 +18,22 @@ int main (int argc, char *argv[]) {
 	}
 
 	/**
-	 *
-	 * If the `--daemon` (`-D`) option was given:
-	 *
-	 * 1) Look for a `--repository-path` (`-R`) option before starting a daemon. If it was given,
-	 *    validate the option argument is a path to a Git repository.
-	 * 2) If no `--repository-path` option was specified, check the CWD. Alas, if the CWD
-	 *    is not a Git repository, emit an error and die.
-	 *
+	 * Check if `--daemon` (`-D`) option was given. This will determine
+	 * if the process should detach from its controlling tty or not.
 	 */
 	if (opt_in_array(GIT_STASHD_OPT_DAEMON_L, argv, argc) ||
 	    opt_in_array(GIT_STASHD_OPT_DAEMON_S, argv, argc)) {
 		daemonize = 1;
 	}
 
-	// Check for `--repository-path` option and argument
+	/**
+	 * Check for `--repository-path` option and argument.
+	 */
 	if (opt_in_array(GIT_STASHD_OPT_REPOPATH_L, argv, argc) ||
 	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
 
 		// Index of `--repository-path` option in `argv`
-		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != -1)
+		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOOPT_FOUND_V)
 		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
 
@@ -55,33 +43,51 @@ int main (int argc, char *argv[]) {
 		// Actual pathname string given as the option argument
 		pathname  = argv[arg_index];
 
-		// Die if `pathname` is not a valid directory
 		if (!is_dir(pathname)) {
-			printf("%s is not a valid directory!\n", pathname);
+			printf("%s is not a directory!\n", pathname);
 
 			exit(EXIT_FAILURE);
 		}
 
-		repo_info = (struct repo_info *) malloc(sizeof(struct repo_info));
-		fp = get_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+		if (!is_repo(pathname)) {
+			printf("%s is not a Git repository!\n", pathname);
 
-		repo_info->path = pathname;
-		fprintf(fp, "main -> pathname -> %s\n", pathname);
+			exit(EXIT_FAILURE);
+		}
 
-		// start_daemon(pathname, &pid);
-		// write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+		printf("--repository-path option given, main -> pathname -> %s\n", pathname);
+	} else {
+		/**
+		 * Since `--repository-path` wasn't given,
+		 * attempt to get the pathname from `cwd`.
+		 */
+		pathname = getcwd(cwd, sizeof(cwd));
 
-		repo_info->path = pathname;
-		repo_info->pid  = pid;
+		if (!pathname) {
+			printf("Unable to get the current working directory!\n");
 
-		// fprintf(fp, "main -> pid  -> %ld\n", pid);
+			exit(EXIT_FAILURE);
+		}
 
-		free(repo_info);
-		fclose(fp);
+		if (!is_dir(pathname)) {
+			printf("%s is not a directory!\n", pathname);
+
+			exit(EXIT_FAILURE);
+		}
+
+		if (!is_repo(pathname)) {
+			printf("%s is not a Git repository!\n", pathname);
+
+			exit(EXIT_FAILURE);
+		}
+
+		printf("--repository-path option not given, main -> pathname -> %s\n", pathname);
 	}
 
 	if (daemonize) {
-		printf("%d\n", daemonize);
+		fork_proc();
+
+		write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 	}
 
 	return EXIT_SUCCESS;
