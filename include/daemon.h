@@ -7,29 +7,14 @@
 #ifndef GIT_STASHD_DAEMON_H
 #define GIT_STASHD_DAEMON_H
 
-#include <dirent.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include "argv.h"
+#include "common.h"
+#include "fs.h"
+#include "repo.h"
 
-#ifdef __APPLE__
-#include <limits.h>
-#else
-#include <linux/limits.h>
-#endif
-
-struct repo_info {
-	char *path;
-	long pid;
-};
-
-int is_dir(const char *path);
-int is_repo(const char *path);
-
-void start_daemon(const char *repo, long *pid);
-void stop_daemon(long *pid);
+void fork_proc(void);
 
 FILE *get_log_file(char *filename, char *filemode);
-int write_log_file(char *filename, char *filemode);
+void write_log_file(char *filename, char *filemode);
 
-#endif
+#endif /* GIT_STASHD_DAEMON_H */
