@@ -7,6 +7,7 @@
 #ifndef GIT_STASHD_COMMON_H
 #define GIT_STASHD_COMMON_H
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
