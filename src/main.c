@@ -93,15 +93,17 @@ int main (int argc, char *argv[]) {
 	/**
 	 * Create struct for storing Git repository information.
 	 */
-	repo = malloc(sizeof(*repo));
-	repo->path = malloc(sizeof(char[PATH_MAX]));
-	repo->stashes = malloc(sizeof(struct stash *));
+	repo = ALLOC(sizeof(*repo));
+	repo->path = ALLOC(sizeof(char[PATH_MAX]));
+	repo->stashes = ALLOC(sizeof(struct stash *));
 
 	strcpy(repo->path, "something");
 
 	set_stashes(&repo);
 
-	free(repo);
+	FREE(repo->stashes);
+	FREE(repo->path);
+	FREE(repo);
 
 	if (daemonize) {
 		fork_proc();
