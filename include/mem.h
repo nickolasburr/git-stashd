@@ -1,11 +1,9 @@
 #ifndef GIT_STASHD_MEM_H
 #define GIT_STASHD_MEM_H
 
-#include "assert.h"
 #include "except.h"
 
 extern const Except_T Mem_Failed;
-
 extern void *Mem_alloc (long nbytes, const char *file, int line);
 extern void *Mem_calloc(long count, long nbytes, const char *file, int line);
 extern void Mem_free(void *ptr, const char *file, int line);
@@ -21,5 +19,4 @@ extern void *Mem_resize(void *ptr, long nbytes, const char *file, int line);
 	__FILE__, __LINE__), (ptr) = 0))
 #define RESIZE(ptr, nbytes) 	((ptr) = Mem_resize((ptr), \
 	(nbytes), __FILE__, __LINE__))
-
 #endif /* GIT_STASHD_MEM_H */

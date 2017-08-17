@@ -2,8 +2,6 @@
 #define GIT_STASHD_EXCEPT_H
 
 #include <setjmp.h>
-#include "assert.h"
-#include "common.h"
 
 #define T Except_T
 
@@ -34,8 +32,7 @@ __declspec(thread)
 
 extern Except_Frame *Except_stack;
 extern const Except_T Assert_Failed;
-
-void Except_raise(const T *e, const char *file, int line);
+void Except_raise(const T *e, const char *file,int line);
 
 #define RAISE(e) Except_raise(&(e), __FILE__, __LINE__)
 #define RERAISE Except_raise(Except_frame.exception, \
@@ -67,5 +64,4 @@ void Except_raise(const T *e, const char *file, int line);
 } while (0)
 
 #undef T
-
 #endif /* GIT_STASHD_EXCEPT_H */
