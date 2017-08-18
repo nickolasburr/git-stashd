@@ -3,7 +3,6 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
-
 #include "main.h"
 
 int main (int argc, char *argv[]) {
@@ -11,6 +10,8 @@ int main (int argc, char *argv[]) {
 	char *pathname;
 	char cwd[PATH_MAX];
 	struct repo *repo;
+	struct stash *stash;
+
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
@@ -49,18 +50,6 @@ int main (int argc, char *argv[]) {
 		// Actual pathname string given as the option argument
 		pathname  = argv[arg_index];
 
-		if (!is_dir(pathname)) {
-			printf("%s is not a directory!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		if (!is_repo(pathname)) {
-			printf("%s is not a Git repository!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
 		printf("--repository-path option given, main -> pathname -> %s\n", pathname);
 	} else {
 		/**
@@ -75,33 +64,41 @@ int main (int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		if (!is_dir(pathname)) {
-			printf("%s is not a directory!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		if (!is_repo(pathname)) {
-			printf("%s is not a Git repository!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
 		printf("--repository-path option not given, main -> pathname -> %s\n", pathname);
+	}
+
+	/**
+	 * Validate pathname is an existing directory within reach.
+	 */
+	if (!is_dir(pathname)) {
+		printf("%s is not a directory!\n", pathname);
+
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * And that it's also a Git repository.
+	 */
+	if (!is_repo(pathname)) {
+		printf("%s is not a Git repository!\n", pathname);
+
+		exit(EXIT_FAILURE);
 	}
 
 	/**
 	 * Create struct for storing Git repository information.
 	 */
 	repo = ALLOC(sizeof(*repo));
-	repo->path = ALLOC(sizeof(char[PATH_MAX]));
-	repo->stashes = ALLOC(sizeof(struct stash *));
+	repo->path = ALLOC(sizeof(char) * (strlen(pathname) + 1));
+	repo->stash = ALLOC(sizeof(*stash));
+	repo->stash->entries = ALLOC(sizeof(char) * 4096);
 
-	strcpy(repo->path, "something");
+	strcpy(repo->path, pathname);
 
-	set_stashes(&repo);
+	set_stash(repo);
 
-	FREE(repo->stashes);
+	FREE(repo->stash->entries);
+	FREE(repo->stash);
 	FREE(repo->path);
 	FREE(repo);
 
