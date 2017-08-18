@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+#include "common.h"
 #include "except.h"
 
 #define T Except_T
