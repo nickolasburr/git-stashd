@@ -10,19 +10,20 @@
 #include "common.h"
 #include "daemon.h"
 #include "fs.h"
+#include "mem.h"
 
 struct stash {
-	int total;
+	int length;
 	char *entries;
 };
 
 struct repo {
 	char *path;
-	struct stash *stashes;
+	struct stash *stash;
 };
 
-struct stash *get_stashes(struct repo *r);
-void set_stashes(struct repo *r);
+struct stash *get_stash(struct repo *r);
+void set_stash(struct repo *r);
 
 int has_worktree_changed(struct repo *r);
 

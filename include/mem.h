@@ -1,6 +1,7 @@
 #ifndef GIT_STASHD_MEM_H
 #define GIT_STASHD_MEM_H
 
+#include "common.h"
 #include "except.h"
 
 extern const Except_T Mem_Failed;
