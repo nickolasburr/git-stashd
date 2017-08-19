@@ -11,6 +11,9 @@
 #include "daemon.h"
 #include "fs.h"
 #include "mem.h"
+#include "utils.h"
+
+#define STASH_ENTRY_LINE_MAX 1024
 
 struct stash {
 	int length;

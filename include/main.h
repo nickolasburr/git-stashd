@@ -15,5 +15,6 @@
 #include "fs.h"
 #include "mem.h"
 #include "repo.h"
+#include "utils.h"
 
 #endif /* GIT_STASHD_MAIN_H */
