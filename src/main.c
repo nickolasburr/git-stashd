@@ -3,7 +3,6 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
-
 #include "main.h"
 
 int main (int argc, char *argv[]) {
@@ -11,6 +10,8 @@ int main (int argc, char *argv[]) {
 	char *pathname;
 	char cwd[PATH_MAX];
 	struct repo *repo;
+	struct stash *stash;
+
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
@@ -49,19 +50,7 @@ int main (int argc, char *argv[]) {
 		// Actual pathname string given as the option argument
 		pathname  = argv[arg_index];
 
-		if (!is_dir(pathname)) {
-			printf("%s is not a directory!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		if (!is_repo(pathname)) {
-			printf("%s is not a Git repository!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		printf("--repository-path option given, main -> pathname -> %s\n", pathname);
+		printf("--repository-path option given, pathname set to -> %s\n", pathname);
 	} else {
 		/**
 		 * Since `--repository-path` wasn't given,
@@ -75,33 +64,48 @@ int main (int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		if (!is_dir(pathname)) {
-			printf("%s is not a directory!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		if (!is_repo(pathname)) {
-			printf("%s is not a Git repository!\n", pathname);
-
-			exit(EXIT_FAILURE);
-		}
-
-		printf("--repository-path option not given, main -> pathname -> %s\n", pathname);
+		printf("--repository-path option not given, assuming current pathname -> %s\n", pathname);
 	}
 
 	/**
-	 * Create struct for storing Git repository information.
+	 * Validate pathname is an existing directory within reach.
 	 */
-	repo = malloc(sizeof(*repo));
-	repo->path = malloc(sizeof(char[PATH_MAX]));
-	repo->stashes = malloc(sizeof(struct stash *));
+	if (!is_dir(pathname)) {
+		printf("%s is not a directory!\n", pathname);
 
-	strcpy(repo->path, "something");
+		exit(EXIT_FAILURE);
+	}
 
-	set_stashes(&repo);
+	/**
+	 * And that it's also a Git repository.
+	 */
+	if (!is_repo(pathname)) {
+		printf("%s is not a Git repository!\n", pathname);
 
-	free(repo);
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * Initialize struct for storing information
+	 * specific to the Git repository in question.
+	 */
+	repo = ALLOC(sizeof(*repo));
+	repo->path = ALLOC(sizeof(char) * (strlen(pathname) + 1));
+	repo->stash = ALLOC(sizeof(*stash));
+	repo->stash->entries = ALLOC(sizeof(char) * 4096);
+
+	// Copy `pathname` over to repo struct `path` member.
+	strcpy(repo->path, pathname);
+
+	set_stash(repo);
+
+	printf("main -> repo->stash->entries ->\n");
+	printf("%s", repo->stash->entries);
+
+	FREE(repo->stash->entries);
+	FREE(repo->stash);
+	FREE(repo->path);
+	FREE(repo);
 
 	if (daemonize) {
 		fork_proc();

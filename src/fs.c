@@ -18,8 +18,6 @@ DIR *get_dir (const char *path) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("get_dir -> path -> %s\n", path);
-
 	return dp;
 }
 
@@ -35,8 +33,6 @@ FILE *get_file (char *filename, char *filemode) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("get_file -> filename -> %s\n", filename);
-
 	return fp;
 }
 
@@ -51,15 +47,10 @@ int is_dir (const char *path) {
 	int is_dir;
 	char actualpath[PATH_MAX], *dir_ptr;
 
-	// Absolute path to directory
-	dir_ptr = realpath(path, actualpath);
-
-	printf("is_dir -> path -> %s\n", dir_ptr);
-
 	while ((de = readdir(dp))) {
 	#ifdef _DIRENT_HAVE_D_TYPE
 		if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
-			is_dir = (de->d_type == DT_DIR) ? 1 : 0;
+			is_dir = (de->d_type == DT_DIR);
 		} else
 	#endif
 		{
@@ -70,8 +61,6 @@ int is_dir (const char *path) {
 		}
 
 		if (is_dir) {
-			printf("is_dir -> de->d_name -> %s/\n", de->d_name);
-
 			return 1;
 		}
 	}

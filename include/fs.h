@@ -21,7 +21,7 @@
 #include <linux/limits.h>
 #endif
 
-#define GIT_STASHD_CHECK_REPO_CMD "git rev-parse --git-dir &>/dev/null"
+#define GIT_STASHD_CHECK_REPO_CMD "git rev-parse --git-dir >/dev/null"
 
 DIR *get_dir(const char *path);
 FILE *get_file(char *filename, char *filemode);

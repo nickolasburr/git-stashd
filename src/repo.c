@@ -3,27 +3,32 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
-
 #include "repo.h"
 
 /**
- * Get all stashes for a repository.
+ * Get all stash entries for a repository.
  */
-struct stash *get_stashes (struct repo *r) {
-	return r->stashes;
+struct stash *get_stash (struct repo *r) {
+	return r->stash;
 }
 
 /**
- * Set a copy of all stashes for a repository in memory.
+ * Set a copy of all stash entries for a Git repository.
  */
-void set_stashes (struct repo *r) {
-	// @todo: Build this function out.
-	char *cmd;
+void set_stash (struct repo *r) {
+	const char *fmt;
+	char *cmd, line[STASH_ENTRY_LINE_MAX];
 	FILE *fp;
 
-	printf("set_stashes -> r->path -> %s\n", r->path);
+	/**
+	 * Allocate space for `cmd`, create
+	 * formatted command with interpolated
+	 * pathname, and open pipe stream.
+	 */
+	fmt = "/usr/bin/git -C %s stash list";
+	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(fmt) + 1)));
 
-	sprintf(cmd, "/usr/bin/git -C %s -- stash list", r->path);
+	sprintf(cmd, fmt, r->path);
 
 	fp = popen(cmd, "r");
 
@@ -33,16 +38,28 @@ void set_stashes (struct repo *r) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (fgets(r->stashes->entries, (sizeof(r->stashes->entries) - 1), fp) != NULL) {
-		printf("%s\n", r->stashes->entries);
+	while (fgets(line, STASH_ENTRY_LINE_MAX, fp) != NULL) {
+		// Strip any existing newlines, carriage returns, etc.
+		line[strcspn(line, "\r\n")] = 0;
+
+		/**
+		 * Add a single newline to the end of the string,
+		 * then concatenate `line` with the entries array.
+		 */
+		concat(line, "\n");
+		concat(r->stash->entries, line);
 	}
 
+	/**
+	 * Free allocated space for `cmd`, close pipe stream.
+	 */
+	FREE(cmd);
 	pclose(fp);
 }
 
 
 /**
- * Check if the worktree has changed since our last check.
+ * Check if the worktree has changed since the last check.
  */
 int has_worktree_changed (struct repo *r) {
 	return 1;

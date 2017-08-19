@@ -7,10 +7,14 @@
 #ifndef GIT_STASHD_MAIN_H
 #define GIT_STASHD_MAIN_H
 
-#include "argv.h"
 #include "common.h"
+#include "assert.h"
+#include "except.h"
+#include "argv.h"
 #include "daemon.h"
 #include "fs.h"
+#include "mem.h"
 #include "repo.h"
+#include "utils.h"
 
 #endif /* GIT_STASHD_MAIN_H */
