@@ -50,7 +50,7 @@ int main (int argc, char *argv[]) {
 		// Actual pathname string given as the option argument
 		pathname  = argv[arg_index];
 
-		printf("--repository-path option given, main -> pathname -> %s\n", pathname);
+		printf("--repository-path option given, pathname set to -> %s\n", pathname);
 	} else {
 		/**
 		 * Since `--repository-path` wasn't given,
@@ -64,7 +64,7 @@ int main (int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 
-		printf("--repository-path option not given, main -> pathname -> %s\n", pathname);
+		printf("--repository-path option not given, assuming current pathname -> %s\n", pathname);
 	}
 
 	/**
@@ -86,16 +86,21 @@ int main (int argc, char *argv[]) {
 	}
 
 	/**
-	 * Create struct for storing Git repository information.
+	 * Initialize struct for storing information
+	 * specific to the Git repository in question.
 	 */
 	repo = ALLOC(sizeof(*repo));
 	repo->path = ALLOC(sizeof(char) * (strlen(pathname) + 1));
 	repo->stash = ALLOC(sizeof(*stash));
 	repo->stash->entries = ALLOC(sizeof(char) * 4096);
 
+	// Copy `pathname` over to repo struct `path` member.
 	strcpy(repo->path, pathname);
 
 	set_stash(repo);
+
+	printf("main -> repo->stash->entries ->\n");
+	printf("%s", repo->stash->entries);
 
 	FREE(repo->stash->entries);
 	FREE(repo->stash);

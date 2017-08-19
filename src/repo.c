@@ -13,17 +13,22 @@ struct stash *get_stash (struct repo *r) {
 }
 
 /**
- * Set a copy of all stash entries for a repository.
+ * Set a copy of all stash entries for a Git repository.
  */
 void set_stash (struct repo *r) {
-	char *cmd;
+	const char *fmt;
+	char *cmd, line[STASH_ENTRY_LINE_MAX];
 	FILE *fp;
 
-	// Allocate space for command string
-	cmd = ALLOC(sizeof(char) * (strlen(r->path) + 100));
+	/**
+	 * Allocate space for `cmd`, create
+	 * formatted command with interpolated
+	 * pathname, and open pipe stream.
+	 */
+	fmt = "/usr/bin/git -C %s stash list";
+	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(fmt) + 1)));
 
-	sprintf(cmd, "/usr/bin/git -C %s stash list", r->path);
-	printf("set_stashes -> cmd -> %s\n", cmd);
+	sprintf(cmd, fmt, r->path);
 
 	fp = popen(cmd, "r");
 
@@ -33,11 +38,21 @@ void set_stash (struct repo *r) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (fgets(r->stash->entries, (sizeof(r->stash->entries) - 1), fp) != NULL) {
-		printf("%s\n", r->stash->entries);
+	while (fgets(line, STASH_ENTRY_LINE_MAX, fp) != NULL) {
+		// Strip any existing newlines, carriage returns, etc.
+		line[strcspn(line, "\r\n")] = 0;
+
+		/**
+		 * Add a single newline to the end of the string,
+		 * then concatenate `line` with the entries array.
+		 */
+		concat(line, "\n");
+		concat(r->stash->entries, line);
 	}
 
-	// Free space allocated for commnad string
+	/**
+	 * Free allocated space for `cmd`, close pipe stream.
+	 */
 	FREE(cmd);
 	pclose(fp);
 }
