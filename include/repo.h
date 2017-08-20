@@ -25,8 +25,9 @@ struct repo {
 	struct stash *stash;
 };
 
-int is_repo(const char *path, const char *cmd);
-int has_worktree_changed(struct repo *r);
+int is_repo(const char *path);
+int is_worktree_dirty(struct repo *r);
+
 struct stash *get_stash(struct repo *r);
 void set_stash(struct repo *r);
 

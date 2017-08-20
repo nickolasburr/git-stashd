@@ -38,7 +38,7 @@ void set_stash (struct repo *r) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (fgets(line, GIT_STASHD_ENTRY_LINE_MAX, fp) != NULL) {
+	while (!is_null(fgets(line, GIT_STASHD_ENTRY_LINE_MAX, fp))) {
 		// Strip any existing newlines, carriage returns, etc.
 		line[strcspn(line, "\r\n")] = 0;
 
@@ -59,23 +59,23 @@ void set_stash (struct repo *r) {
 }
 
 /**
- * Check if the worktree has changed since the last check.
+ * Check if the worktree is dirty.
  */
-int has_worktree_changed (struct repo *r) {
+int is_worktree_dirty (struct repo *r) {
 	return 1;
 }
 
 /**
  * Determine if a pathname points to a directory with a Git repository.
  */
-int is_repo (const char *path, const char *cmd) {
+int is_repo (const char *path) {
 	int rev_parse;
 
 	if (!is_dir(path)) {
 		return 0;
 	}
 
-	rev_parse = system(cmd);
+	rev_parse = system(GIT_STASHD_CHECK_REPO_CMD);
 
 	/**
 	 * If it was a clean exit, then we can
