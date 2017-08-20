@@ -8,9 +8,16 @@
 
 /**
  *
- * String utilities
+ * String utilities (syntactic sugar, mostly)
  *
  */
+
+/**
+ * `strcmp` wrapper
+ */
+int compare (char *one, char *two) {
+	return strcmp(one, two);
+};
 
 /**
  * `strcat` wrapper
@@ -102,6 +109,20 @@ int is_file (const char *path) {
 	struct stat st;
 
 	if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) {
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
+ *
+ * Type utilities
+ *
+ */
+
+int is_null (void *ptr) {
+	if (ptr == NULL) {
 		return 1;
 	}
 

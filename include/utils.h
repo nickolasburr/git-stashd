@@ -24,6 +24,7 @@
  * String utilities
  */
 
+int compare(char *one, char *two);
 char *concat(char *buf, char *str);
 char *copy(char *buf, char *str);
 
@@ -41,5 +42,11 @@ int is_sock(const char *path);
 int is_fifo(const char *path);
 int is_block(const char *path);
 int is_char(const char *path);
+
+/**
+ * Type utilities
+ */
+
+int is_null(void *ptr);
 
 #endif /* GIT_STASHD_UTILS_H */
