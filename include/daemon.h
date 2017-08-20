@@ -9,8 +9,8 @@
 
 #include "argv.h"
 #include "common.h"
-#include "fs.h"
 #include "repo.h"
+#include "utils.h"
 
 void fork_proc(void);
 

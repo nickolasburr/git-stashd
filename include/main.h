@@ -12,7 +12,6 @@
 #include "except.h"
 #include "argv.h"
 #include "daemon.h"
-#include "fs.h"
 #include "mem.h"
 #include "repo.h"
 #include "utils.h"
