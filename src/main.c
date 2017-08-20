@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "main.h"
 
 int main (int argc, char *argv[]) {
@@ -94,9 +95,10 @@ int main (int argc, char *argv[]) {
 	repo->stash = ALLOC(sizeof(*stash));
 	repo->stash->entries = ALLOC(sizeof(char) * 4096);
 
-	// Copy `pathname` over to repo struct `path` member.
-	strcpy(repo->path, pathname);
+	// Copy `pathname` into repo struct `path` member.
+	copy(repo->path, pathname);
 
+	// Set stash entries on repo struct.
 	set_stash(repo);
 
 	printf("main -> repo->stash->entries ->\n");
