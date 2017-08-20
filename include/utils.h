@@ -11,5 +11,6 @@
 #include "common.h"
 
 char *concat(char *buf, char *str);
+char *copy(char *buf, char *str);
 
 #endif /* GIT_STASHD_UTILS_H */
