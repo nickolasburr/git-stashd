@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "repo.h"
 
 /**
@@ -16,7 +17,7 @@ struct stash *get_stash (struct repo *r) {
  * Set a copy of all stash entries for a Git repository.
  */
 void set_stash (struct repo *r) {
-	const char *fmt;
+	const char *format = "/usr/bin/git -C %s stash list";
 	char *cmd, line[STASH_ENTRY_LINE_MAX];
 	FILE *fp;
 
@@ -25,10 +26,9 @@ void set_stash (struct repo *r) {
 	 * formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	fmt = "/usr/bin/git -C %s stash list";
-	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(fmt) + 1)));
+	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(format) + 1)));
 
-	sprintf(cmd, fmt, r->path);
+	sprintf(cmd, format, r->path);
 
 	fp = popen(cmd, "r");
 
@@ -43,15 +43,16 @@ void set_stash (struct repo *r) {
 		line[strcspn(line, "\r\n")] = 0;
 
 		/**
-		 * Add a single newline to the end of the string,
-		 * then concatenate `line` with the entries array.
+		 * Append a single newline to the end of `line`,
+		 * then merge `line` with `entries` char array.
 		 */
 		concat(line, "\n");
 		concat(r->stash->entries, line);
 	}
 
 	/**
-	 * Free allocated space for `cmd`, close pipe stream.
+	 * Free allocated space for `cmd`,
+	 * and close pipe stream.
 	 */
 	FREE(cmd);
 	pclose(fp);
