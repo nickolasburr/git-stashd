@@ -9,8 +9,8 @@
 
 #include <stdio.h>
 #include <string.h>
-
 #include "common.h"
+#include "utils.h"
 
 #define GIT_STASHD_LOG_FILE "git-stashd.log"
 #define GIT_STASHD_LOG_MODE "a+"

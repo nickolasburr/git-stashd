@@ -8,7 +8,9 @@
 #define GIT_STASHD_MEM_H
 
 #include "common.h"
+#include "assert.h"
 #include "except.h"
+#include "utils.h"
 
 extern const Except_T Mem_Failed;
 

@@ -80,7 +80,7 @@ int main (int argc, char *argv[]) {
 	/**
 	 * And that it's also a Git repository.
 	 */
-	if (!is_repo(pathname, GIT_STASHD_CHECK_REPO_CMD)) {
+	if (!is_repo(pathname)) {
 		printf("%s is not a Git repository!\n", pathname);
 
 		exit(EXIT_FAILURE);
