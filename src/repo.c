@@ -18,7 +18,7 @@ struct stash *get_stash (struct repo *r) {
  */
 void set_stash (struct repo *r) {
 	const char *format = "/usr/bin/git -C %s stash list";
-	char *cmd, line[STASH_ENTRY_LINE_MAX];
+	char *cmd, line[GIT_STASHD_ENTRY_LINE_MAX];
 	FILE *fp;
 
 	/**
@@ -38,7 +38,7 @@ void set_stash (struct repo *r) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (fgets(line, STASH_ENTRY_LINE_MAX, fp) != NULL) {
+	while (fgets(line, GIT_STASHD_ENTRY_LINE_MAX, fp) != NULL) {
 		// Strip any existing newlines, carriage returns, etc.
 		line[strcspn(line, "\r\n")] = 0;
 
@@ -58,10 +58,32 @@ void set_stash (struct repo *r) {
 	pclose(fp);
 }
 
-
 /**
  * Check if the worktree has changed since the last check.
  */
 int has_worktree_changed (struct repo *r) {
 	return 1;
+}
+
+/**
+ * Determine if a pathname points to a directory with a Git repository.
+ */
+int is_repo (const char *path, const char *cmd) {
+	int rev_parse;
+
+	if (!is_dir(path)) {
+		return 0;
+	}
+
+	rev_parse = system(cmd);
+
+	/**
+	 * If it was a clean exit, then we can
+	 * infer we're inside a Git repository.
+	 */
+	if (!rev_parse) {
+		return 1;
+	}
+
+	return 0;
 }

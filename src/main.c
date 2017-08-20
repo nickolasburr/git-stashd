@@ -80,7 +80,7 @@ int main (int argc, char *argv[]) {
 	/**
 	 * And that it's also a Git repository.
 	 */
-	if (!is_repo(pathname)) {
+	if (!is_repo(pathname, GIT_STASHD_CHECK_REPO_CMD)) {
 		printf("%s is not a Git repository!\n", pathname);
 
 		exit(EXIT_FAILURE);
@@ -101,8 +101,7 @@ int main (int argc, char *argv[]) {
 	// Set stash entries on repo struct.
 	set_stash(repo);
 
-	printf("main -> repo->stash->entries ->\n");
-	printf("%s", repo->stash->entries);
+	printf("main -> repo->stash->entries -> \n%s", repo->stash->entries);
 
 	FREE(repo->stash->entries);
 	FREE(repo->stash);
