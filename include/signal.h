@@ -10,8 +10,6 @@
 #include <signal.h>
 #include "common.h"
 
-/* extern volatile sig_atomic_t alarm_fired; */
-
 void on_signal(int signal);
 void on_sigalrm(int signal);
 void nap(int seconds);

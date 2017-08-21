@@ -11,7 +11,7 @@ int main (int argc, char *argv[]) {
 	char cwd[PATH_MAX], *pathname;
 	struct repo *repo;
 	struct stash *stash;
-	struct sigaction signal;
+	struct sigaction action;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.

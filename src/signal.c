@@ -6,6 +6,8 @@
 
 #include "signal.h"
 
+volatile sig_atomic_t alarm_fired;
+
 void on_signal (int signal) {
 	const char *signal_name;
 	sigset_t pending;
@@ -56,6 +58,8 @@ void on_sigalrm (int signal) {
 	if (signal != SIGALRM) {
 		fprintf(stderr, "Caught wrong signal: %d\n", signal);
 	}
+
+	alarm_fired = 1;
 
 	printf("Caught SIGALRM, nap() will end...\n");
 }
