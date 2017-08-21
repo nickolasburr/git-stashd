@@ -7,13 +7,12 @@
 #ifndef GIT_STASHD_DAEMON_H
 #define GIT_STASHD_DAEMON_H
 
-#include "argv.h"
 #include "common.h"
 #include "repo.h"
+#include "signal.h"
 #include "utils.h"
 
 void fork_proc(void);
-
 FILE *get_log_file(char *filename, char *filemode);
 void write_log_file(char *filename, char *filemode);
 

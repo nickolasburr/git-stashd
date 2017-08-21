@@ -8,11 +8,10 @@
 #define GIT_STASHD_UTILS_H
 
 #include <dirent.h>
-#include <signal.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "common.h"
+#include "signal.h"
 
 #ifdef __APPLE__
 #include <limits.h>
