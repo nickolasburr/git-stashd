@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "common.h"
-#include "signal.h"
+#include "signals.h"
 
 #ifdef __APPLE__
 #include <limits.h>

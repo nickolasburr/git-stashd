@@ -14,7 +14,7 @@
 #include "daemon.h"
 #include "mem.h"
 #include "repo.h"
-#include "signal.h"
+#include "signals.h"
 #include "utils.h"
 
 #endif /* GIT_STASHD_MAIN_H */

@@ -4,7 +4,7 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#include "signal.h"
+#include "signals.h"
 
 volatile sig_atomic_t alarm_fired;
 

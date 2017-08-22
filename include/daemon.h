@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "repo.h"
-#include "signal.h"
+#include "signals.h"
 #include "utils.h"
 
 void fork_proc(void);
