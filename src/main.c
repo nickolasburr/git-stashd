@@ -98,8 +98,8 @@ int main (int argc, char *argv[]) {
 	// Copy `pathname` into repo struct `path` member.
 	copy(repo->path, pathname);
 
-	// Set stash entries on repo struct.
-	set_stash(repo);
+	// List stash entries.
+	list_stash(repo);
 
 	printf("main -> repo->stash->entries -> \n%s\n", repo->stash->entries);
 

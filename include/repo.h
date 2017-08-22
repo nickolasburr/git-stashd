@@ -28,7 +28,14 @@ struct repo {
 int is_repo(const char *path);
 int is_worktree_dirty(struct repo *r);
 
+struct stash *get_entry();
+struct stash *set_entry();
+
 struct stash *get_stash(struct repo *r);
-void set_stash(struct repo *r);
+struct stash *set_stash(struct repo *r);
+void list_stash(struct repo *r);
+
+char *get_commit_sha_by_index(struct repo *r);
+char *is_same_entry(struct repo *r);
 
 #endif /* GIT_STASHD_REPO_H */

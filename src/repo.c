@@ -14,9 +14,9 @@ struct stash *get_stash (struct repo *r) {
 }
 
 /**
- * Set a copy of all stash entries for a Git repository.
+ * List stash entries.
  */
-void set_stash (struct repo *r) {
+void list_stash (struct repo *r) {
 	const char *format = "/usr/bin/git -C %s stash list";
 	char *cmd, line[GIT_STASHD_ENTRY_LINE_MAX];
 	FILE *fp;
