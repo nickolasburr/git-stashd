@@ -1,3 +1,9 @@
+/**
+ * assert.h
+ *
+ * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
+ */
+
 #undef assert
 
 #ifdef NDEBUG

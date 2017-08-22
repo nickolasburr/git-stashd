@@ -12,9 +12,9 @@
 #include "except.h"
 #include "argv.h"
 #include "daemon.h"
-#include "fs.h"
 #include "mem.h"
 #include "repo.h"
+#include "signals.h"
 #include "utils.h"
 
 #endif /* GIT_STASHD_MAIN_H */

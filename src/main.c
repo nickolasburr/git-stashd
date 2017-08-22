@@ -3,14 +3,15 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "main.h"
 
 int main (int argc, char *argv[]) {
 	int opt_index, arg_index, daemonize;
-	char *pathname;
-	char cwd[PATH_MAX];
+	char cwd[PATH_MAX], *pathname;
 	struct repo *repo;
 	struct stash *stash;
+	struct sigaction action;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
@@ -94,13 +95,15 @@ int main (int argc, char *argv[]) {
 	repo->stash = ALLOC(sizeof(*stash));
 	repo->stash->entries = ALLOC(sizeof(char) * 4096);
 
-	// Copy `pathname` over to repo struct `path` member.
-	strcpy(repo->path, pathname);
+	// Copy `pathname` into repo struct `path` member.
+	copy(repo->path, pathname);
 
+	// Set stash entries on repo struct.
 	set_stash(repo);
 
-	printf("main -> repo->stash->entries ->\n");
-	printf("%s", repo->stash->entries);
+	printf("main -> repo->stash->entries -> \n%s\n", repo->stash->entries);
+
+	printf("main -> is_worktree_dirty(repo) -> %d\n", is_worktree_dirty(repo));
 
 	FREE(repo->stash->entries);
 	FREE(repo->stash);
@@ -112,6 +115,33 @@ int main (int argc, char *argv[]) {
 
 		write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 	}
+
+//	printf("My PID is: %d\n", getpid());
+//
+//	action.sa_handler = &on_signal;
+//	action.sa_flags = SA_RESTART;
+//	sigfillset(&action.sa_mask);
+//
+//	if (sigaction(SIGHUP, &action, NULL) == -1) {
+//		perror("ERROR: Cannot handle SIGHUP!");
+//	}
+//
+//	if (sigaction(SIGUSR1, &action, NULL) == -1) {
+//		perror("ERROR: Cannot handle SIGUSR1!");
+//	}
+//
+//	if (sigaction(SIGKILL, &action, NULL) == -1) {
+//		perror("ERROR: Cannot (and will never be able to) handle SIGKILL!");
+//	}
+//
+//	if (sigaction(SIGINT, &action, NULL) == -1) {
+//		perror("ERROR: Cannot handle SIGINT!");
+//	}
+//
+//	while (1) {
+//		printf("\nNapping for ~5 seconds\n");
+//		nap(5);
+//	}
 
 	return EXIT_SUCCESS;
 }

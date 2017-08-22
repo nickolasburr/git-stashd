@@ -2,7 +2,7 @@
 ### Makefile
 ###
 
-CC      = gcc
+CC      = colorgcc
 TARGET  = git-stashd
 PATH    = $(shell printenv PATH)
 

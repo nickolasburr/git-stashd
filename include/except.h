@@ -1,3 +1,8 @@
+/**
+ * except.h
+ *
+ * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
+ */
 #ifndef GIT_STASHD_EXCEPT_H
 #define GIT_STASHD_EXCEPT_H
 
@@ -36,8 +41,7 @@ extern const Except_T Assert_Failed;
 void Except_raise(const T *e, const char *file, int line);
 
 #define RAISE(e) Except_raise(&(e), __FILE__, __LINE__)
-#define RERAISE Except_raise(Except_frame.exception, \
-	Except_frame.file, Except_frame.line)
+#define RERAISE Except_raise(Except_frame.exception, Except_frame.file, Except_frame.line)
 #define RETURN switch (Except_stack = Except_stack->prev,0) default: return
 #define TRY do { \
 	volatile int Except_flag; \

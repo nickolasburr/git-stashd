@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "repo.h"
 
 /**
@@ -16,8 +17,8 @@ struct stash *get_stash (struct repo *r) {
  * Set a copy of all stash entries for a Git repository.
  */
 void set_stash (struct repo *r) {
-	const char *fmt;
-	char *cmd, line[STASH_ENTRY_LINE_MAX];
+	const char *format = "/usr/bin/git -C %s stash list";
+	char *cmd, line[GIT_STASHD_ENTRY_LINE_MAX];
 	FILE *fp;
 
 	/**
@@ -25,10 +26,9 @@ void set_stash (struct repo *r) {
 	 * formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	fmt = "/usr/bin/git -C %s stash list";
-	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(fmt) + 1)));
+	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(format) + 1)));
 
-	sprintf(cmd, fmt, r->path);
+	sprintf(cmd, format, r->path);
 
 	fp = popen(cmd, "r");
 
@@ -38,29 +38,89 @@ void set_stash (struct repo *r) {
 		exit(EXIT_FAILURE);
 	}
 
-	while (fgets(line, STASH_ENTRY_LINE_MAX, fp) != NULL) {
+	while (!is_null(fgets(line, GIT_STASHD_ENTRY_LINE_MAX, fp))) {
 		// Strip any existing newlines, carriage returns, etc.
 		line[strcspn(line, "\r\n")] = 0;
 
 		/**
-		 * Add a single newline to the end of the string,
-		 * then concatenate `line` with the entries array.
+		 * Append a single newline to the end of `line`,
+		 * then merge `line` with `entries` char array.
 		 */
 		concat(line, "\n");
 		concat(r->stash->entries, line);
 	}
 
 	/**
-	 * Free allocated space for `cmd`, close pipe stream.
+	 * Free allocated space for `cmd`,
+	 * and close pipe stream.
 	 */
 	FREE(cmd);
 	pclose(fp);
 }
 
+/**
+ * Check if the worktree is dirty.
+ */
+int is_worktree_dirty (struct repo *r) {
+	int index_status;
+	char *diff_index_cmd, *update_index_cmd;
+	const char *diff_index_fmt   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
+	           *update_index_fmt = "/usr/bin/git -C %s update-index -q --really-refresh";
+
+	/**
+	 * Allocate space for `diff_index_cmd`.
+	 */
+	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(diff_index_fmt) + 1)));
+
+	/**
+	 * Allocate space for `update_index_cmd`.
+	 */
+	update_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(update_index_fmt) + 1)));
+
+	sprintf(diff_index_cmd, diff_index_fmt, r->path);
+	sprintf(update_index_cmd, update_index_fmt, r->path);
+
+	/**
+	 * Refresh the index before checking state.
+	 */
+	system(update_index_cmd);
+
+	index_status = system(diff_index_cmd);
+
+	/**
+	 * Free allocated space for `diff_index_cmd`, `update_index_cmd`.
+	 */
+	FREE(diff_index_cmd);
+	FREE(update_index_cmd);
+
+	printf("is_worktree_dirty: `index_status` -> %d\n", index_status);
+
+	if (index_status) {
+		return 1;
+	}
+
+	return 0;
+}
 
 /**
- * Check if the worktree has changed since the last check.
+ * Determine if a pathname points to a directory with a Git repository.
  */
-int has_worktree_changed (struct repo *r) {
-	return 1;
+int is_repo (const char *path) {
+	int rev_parse;
+
+	if (!is_dir(path)) {
+		return 0;
+	}
+
+	rev_parse = system(GIT_STASHD_CHECK_REPO_CMD);
+
+	/**
+	 * If it was a clean exit, then we can
+	 * infer we're inside a Git repository.
+	 */
+	if (!rev_parse) {
+		return 1;
+	}
+
+	return 0;
 }

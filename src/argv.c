@@ -13,7 +13,7 @@ int opt_get_index (const char* const option, const char *arr[], size_t size) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
-		if (!strcmp(arr[i], option)) {
+		if (!compare(arr[i], option)) {
 			return i;
 		}
 	}
@@ -28,7 +28,7 @@ int opt_in_array (const char* const option, const char *arr[], size_t size) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
-		if (!strcmp(arr[i], option)) {
+		if (!compare(arr[i], option)) {
 			return 1;
 		}
 	}

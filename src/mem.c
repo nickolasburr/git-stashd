@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "mem.h"
 
 const Except_T Mem_Failed = {
@@ -15,8 +16,8 @@ void *Mem_alloc (long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = malloc(nbytes);
 
-	if (ptr == NULL) {
-		if (file == NULL) {
+	if (is_null(ptr)) {
+		if (is_null(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);
@@ -33,8 +34,8 @@ void *Mem_calloc (long count, long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = calloc(count, nbytes);
 
-	if (ptr == NULL) {
-		if (file == NULL) {
+	if (is_null(ptr)) {
+		if (is_null(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);
@@ -55,8 +56,8 @@ void *Mem_resize (void *ptr, long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = realloc(ptr, nbytes);
 
-	if (ptr == NULL) {
-		if (file == NULL) {
+	if (is_null(ptr)) {
+		if (is_null(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);

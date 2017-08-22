@@ -3,8 +3,10 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
+
 #include "common.h"
 #include "except.h"
+#include "utils.h"
 
 #define T Except_T
 
@@ -14,7 +16,7 @@ void Except_raise (const T *e, const char *file, int line) {
 	Except_Frame *p = Except_stack;
 	assert(e);
 
-	if (p == NULL) {
+	if (is_null(p)) {
 		fprintf(stderr, "Uncaught exception");
 		if (e->reason) {
 			fprintf(stderr, " %s", e->reason);
