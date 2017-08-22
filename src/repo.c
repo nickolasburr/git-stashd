@@ -62,7 +62,44 @@ void set_stash (struct repo *r) {
  * Check if the worktree is dirty.
  */
 int is_worktree_dirty (struct repo *r) {
-	return 1;
+	int index_status;
+	char *diff_index_cmd, *update_index_cmd;
+	const char *diff_index_fmt   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
+	           *update_index_fmt = "/usr/bin/git -C %s update-index -q --really-refresh";
+
+	/**
+	 * Allocate space for `diff_index_cmd`.
+	 */
+	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(diff_index_fmt) + 1)));
+
+	/**
+	 * Allocate space for `update_index_cmd`.
+	 */
+	update_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (strlen(update_index_fmt) + 1)));
+
+	sprintf(diff_index_cmd, diff_index_fmt, r->path);
+	sprintf(update_index_cmd, update_index_fmt, r->path);
+
+	/**
+	 * Refresh the index before checking state.
+	 */
+	system(update_index_cmd);
+
+	index_status = system(diff_index_cmd);
+
+	/**
+	 * Free allocated space for `diff_index_cmd`, `update_index_cmd`.
+	 */
+	FREE(diff_index_cmd);
+	FREE(update_index_cmd);
+
+	printf("is_worktree_dirty: `index_status` -> %d\n", index_status);
+
+	if (index_status) {
+		return 1;
+	}
+
+	return 0;
 }
 
 /**
