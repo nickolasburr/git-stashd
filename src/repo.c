@@ -6,18 +6,58 @@
 
 #include "repo.h"
 
+char *get_commit_hash_by_index (struct repository *r, int index) {
+	const char *format = "/usr/bin/git -C %s show --no-patch --format='%%H' stash@{%s}";
+	char *cmd, hash[40], line[40];
+	FILE *fp;
+
+	/**
+	 * Allocate space for `cmd`, create
+	 * formatted command with interpolated
+	 * pathname, and open pipe stream.
+	 */
+	cmd = ALLOC(sizeof(char) * ((strlen(r->path) + 1) + (sizeof(char) + 1) + (strlen(format) + 1)));
+
+	sprintf(cmd, format, r->path, (char) index);
+
+	fp = popen(cmd, "r");
+
+	if (is_null(fp)) {
+		printf("Could not open pipe!\n");
+
+		exit(EXIT_FAILURE);
+	}
+
+	while (!is_null(fgets(line, 40, fp))) {
+		// Remove CR, LF, CRLF, etc.
+		line[strcspn(line, "\r\n")] = 0;
+
+		concat(hash, line);
+	}
+
+	/**
+	 * Free allocated space for `cmd`,
+	 * and close pipe stream.
+	 */
+	FREE(cmd);
+	printf("get_commit_hash_by_index: hash -> %s\n", hash);
+
+	return hash;
+}
+
 /**
- * Get all stash entries for a repository.
+ * Get all stash entries for a repository from repo struct.
  */
-struct stash *get_stash (struct repo *r) {
+struct stash *get_stash (struct repository *r) {
 	return r->stash;
 }
 
 /**
- * List stash entries.
+ * Set stash on repository struct.
  */
-void list_stash (struct repo *r) {
-	const char *format = "/usr/bin/git -C %s stash list";
+void set_stash (struct repository *r) {
+	int i = 0;
+	const char *format = "/usr/bin/git -C %s stash list --format='%%s'";
 	char *cmd, line[GIT_STASHD_ENTRY_LINE_MAX];
 	FILE *fp;
 
@@ -39,16 +79,20 @@ void list_stash (struct repo *r) {
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_ENTRY_LINE_MAX, fp))) {
-		// Strip any existing newlines, carriage returns, etc.
+		// Remove CR, LF, CRLF, etc.
 		line[strcspn(line, "\r\n")] = 0;
 
-		/**
-		 * Append a single newline to the end of `line`,
-		 * then merge `line` with `entries` char array.
-		 */
-		concat(line, "\n");
-		concat(r->stash->entries, line);
+		copy(r->stash->entries[i]->hash, get_commit_hash_by_index(r, i));
+		copy(r->stash->entries[i]->message, line);
+
+		printf("set_stash: hash    -> %s\n", r->stash->entries[i]->hash);
+		printf("set_stash: message -> %s\n", line);
+
+		i++;
 	}
+
+	// Set length member on stash struct.
+	r->stash->length = (i + 1);
 
 	/**
 	 * Free allocated space for `cmd`,
@@ -59,9 +103,21 @@ void list_stash (struct repo *r) {
 }
 
 /**
+ * List stash entries.
+ */
+void list_entries (struct stash *s) {
+	int i, length = s->length;
+
+	for (i = 0; i < length; i += 1) {
+		printf("list_entries: hash    -> %s\n", s->entries[i]->hash);
+		printf("list_entries: message -> %s\n", s->entries[i]->message);
+	}
+}
+
+/**
  * Check if the worktree is dirty.
  */
-int is_worktree_dirty (struct repo *r) {
+int is_worktree_dirty (struct repository *r) {
 	int index_status;
 	char *diff_index_cmd, *update_index_cmd;
 	const char *diff_index_fmt   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
