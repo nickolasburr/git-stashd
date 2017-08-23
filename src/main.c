@@ -91,15 +91,14 @@ int main (int argc, char *argv[]) {
 	 * specific to the Git repository in question.
 	 */
 	repo = ALLOC(sizeof(*repo));
-	repo->path = ALLOC(sizeof(char) * (strlen(pathname) + 1));
 	repo->stash = ALLOC(sizeof(*stash));
+
+	// Copy `pathname` into repo struct `path` member.
+	copy(repo->path, pathname);
 
 	for (i = 0; i < 50; i += 1) {
 		repo->stash->entries[i] = ALLOC(sizeof(struct entry));
 	}
-
-	// Copy `pathname` into repo struct `path` member.
-	copy(repo->path, pathname);
 
 	// Set stash on repository struct.
 	set_stash(repo);
@@ -112,7 +111,6 @@ int main (int argc, char *argv[]) {
 	}
 
 	FREE(repo->stash);
-	FREE(repo->path);
 	FREE(repo);
 
 	if (daemonize) {
