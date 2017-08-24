@@ -31,8 +31,9 @@ char *copy(char *buf, char *str);
  * Filesystem utilities
  */
 
-DIR *get_dir(const char *path);
-FILE *get_file(const char *filename, const char *filemode);
+DIR *get_dir(const char *path, int *error);
+FILE *get_file(const char *filename, const char *filemode, int *error);
+FILE *get_pipe(char *command, char *mode, int *error);
 
 int is_dir(const char *path);
 int is_file(const char *path);
