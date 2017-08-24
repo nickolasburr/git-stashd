@@ -38,7 +38,7 @@ int is_repo(const char *path);
 int is_worktree_dirty(struct repository *r);
 
 struct entry *get_entry(struct stash *s, int index);
-int *set_entry(struct repository *r);
+int set_entry(struct repository *r);
 void list_entries(struct stash *s);
 
 struct stash *get_stash(struct repository *r);

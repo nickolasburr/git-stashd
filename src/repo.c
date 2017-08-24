@@ -85,8 +85,8 @@ char *get_message_by_entry_index (struct repository *r, char *msg_buf, int index
 /**
  * Get a stash entry by its index.
  */
-struct entry *get_stash (struct stash *s, int index) {
-	return stash->entries[index];
+struct entry *get_entry (struct stash *s, int index) {
+	return s->entries[index];
 }
 
 /**
