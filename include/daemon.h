@@ -13,7 +13,6 @@
 #include "utils.h"
 
 void fork_proc(void);
-FILE *get_log_file(char *filename, char *filemode);
 void write_log_file(char *filename, char *filemode);
 
 #endif /* GIT_STASHD_DAEMON_H */

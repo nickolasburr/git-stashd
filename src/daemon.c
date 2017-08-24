@@ -47,28 +47,14 @@ void fork_proc (void) {
 }
 
 /**
- * Get pointer to log file
- */
-FILE *get_log_file (char *filename, char *filemode) {
-	FILE *fp = get_file(filename, filemode);
-
-	if (!fp) {
-		return 0;
-	}
-
-	return fp;
-}
-
-/**
  * Write to log file
  */
 void write_log_file (char *filename, char *filemode) {
-	FILE *fp = get_log_file(filename, filemode);
+	int error;
+	FILE *fp = get_file(filename, filemode, &error);
 	pid_t pid = getpid();
 
-	if (!fp) {
-		// @todo: Use `openlog` to make an entry in
-		// syslog, if we're detached from a tty.
+	if (error) {
 		exit(EXIT_FAILURE);
 	}
 
