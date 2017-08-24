@@ -41,7 +41,7 @@ int main (int argc, char *argv[]) {
 	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
 
 		// Index of `--repository-path` option in `argv`
-		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOOPT_FOUND_V)
+		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOT_FOUND)
 		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
 
@@ -104,7 +104,7 @@ int main (int argc, char *argv[]) {
 	set_stash(repo);
 
 	// List stash entries.
-	list_entries(repo->stash);
+	// list_entries(repo->stash);
 
 	for (j = 0; j < 50; j += 1) {
 		FREE(repo->stash->entries[j]);
