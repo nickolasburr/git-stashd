@@ -70,6 +70,21 @@ FILE *get_file (const char *filename, const char *filemode, int *error) {
 }
 
 /**
+ * Get pointer to pipe.
+ */
+FILE *get_pipe (char *command, char *pipemode, int *error) {
+	FILE *fp = popen(command, pipemode);
+
+	*error = 0;
+
+	if (is_null(fp)) {
+		*error = 1;
+	}
+
+	return fp;
+}
+
+/**
  * Determine if pathname is a directory.
  *
  * @notes Adapted from https://goo.gl/ZmWfbx

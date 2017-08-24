@@ -33,7 +33,7 @@ char *copy(char *buf, char *str);
 
 DIR *get_dir(const char *path, int *error);
 FILE *get_file(const char *filename, const char *filemode, int *error);
-FILE *get_pipe(char *command, char *mode, int *error);
+FILE *get_pipe(char *command, char *pipemode, int *error);
 
 int is_dir(const char *path);
 int is_file(const char *path);
