@@ -200,6 +200,9 @@ void list_entries (struct stash *s) {
 int is_worktree_dirty (struct repository *r) {
 	int index_status;
 	char *diff_index_cmd, *update_index_cmd;
+	/**
+	 * @todo: These should be macros or static globals.
+	 */
 	const char *diff_index_fmt   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
 	           *update_index_fmt = "/usr/bin/git -C %s update-index -q --really-refresh";
 
@@ -240,6 +243,11 @@ int is_worktree_dirty (struct repository *r) {
  * Determine if a pathname points to a directory with a Git repository.
  */
 int is_repo (const char *path) {
+	/**
+	 * @todo: Properly build this out.
+	 */
+	static const char *format = "/usr/bin/git -C %s rev-parse --git-dir >/dev/null";
+
 	/**
 	 * Verify `path` is a valid, readable directory.
 	 */
