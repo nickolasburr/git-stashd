@@ -10,6 +10,7 @@
 #include "common.h"
 #include "daemon.h"
 #include "mem.h"
+#include "timestamp.h"
 #include "utils.h"
 
 #define GIT_STASHD_ENTRY_LINE_MAX 1024
@@ -17,6 +18,7 @@
 #define GIT_STASHD_MSG_LENGTH_MAX 90
 #define GIT_STASHD_REF_LENGTH_MAX 255
 #define GIT_STASHD_SHA_LENGTH_MAX 42
+#define GIT_STASHD_TMS_LENGTH_MAX 18
 
 struct entry {
 	int index;

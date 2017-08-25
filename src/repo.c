@@ -132,31 +132,37 @@ struct entry *get_entry (struct stash *s, int index) {
 int set_entry (struct repository *r) {
 	int entry_status, error;
 	FILE *fp;
-	char *create_entry_cmd,
-	     *store_entry_cmd,
+	char *create_cmd,
+	     *store_cmd,
 	     *entry_msg,
 	     line[GIT_STASHD_MSG_LENGTH_MAX],
+	     ts_buf[GIT_STASHD_TMS_LENGTH_MAX],
 	     ref_buf[GIT_STASHD_REF_LENGTH_MAX],
 	     sha_buf[GIT_STASHD_SHA_LENGTH_MAX];
 	static const char *cformat = "/usr/bin/git -C %s stash create '%s'",
 	                  *sformat = "/usr/bin/git -C %s stash store --message '%s' %s",
-	                  *mformat = "WIP on %s: git-stashd autostash feature";
+	                  *mformat = "WIP on %s: git-stashd autostash - %s";
 
 	/**
 	 * Get current branch name
 	 */
 	get_current_branch(r, ref_buf);
 
-	entry_msg = ALLOC(sizeof(char) * ((strlen(mformat) + NULL_BYTE) + (strlen(ref_buf) + NULL_BYTE)));
-	sprintf(entry_msg, mformat, ref_buf);
+	/**
+	 * Get timestamp
+	 */
+	get_timestamp(ts_buf);
+
+	entry_msg = ALLOC(sizeof(char) * ((strlen(mformat) + NULL_BYTE) + (strlen(ref_buf) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+	sprintf(entry_msg, mformat, ref_buf, ts_buf);
 
 	/**
-	 * Allocate space for `create_entry_cmd`.
+	 * Allocate space for `create_cmd`.
 	 */
-	create_entry_cmd = ALLOC(sizeof(char) * ((strlen(cformat) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE)));
-	sprintf(create_entry_cmd, cformat, r->path, entry_msg);
+	create_cmd = ALLOC(sizeof(char) * ((strlen(cformat) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE)));
+	sprintf(create_cmd, cformat, r->path, entry_msg);
 
-	fp = get_pipe(create_entry_cmd, "r", &error);
+	fp = get_pipe(create_cmd, "r", &error);
 
 	/**
 	 * Exit failure if there was an error opening the pipe.
@@ -176,17 +182,17 @@ int set_entry (struct repository *r) {
 	pclose(fp);
 
 	/**
-	 * Allocate space for `store_entry_cmd`.
+	 * Allocate space for `store_cmd`.
 	 */
-	store_entry_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
-	sprintf(store_entry_cmd, sformat, r->path, entry_msg, sha_buf);
+	store_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
+	sprintf(store_cmd, sformat, r->path, entry_msg, sha_buf);
 
-	entry_status = system(store_entry_cmd);
+	entry_status = system(store_cmd);
 
 	printf("set_entry: entry_status -> %d\n", entry_status);
 
-	FREE(create_entry_cmd);
-	FREE(store_entry_cmd);
+	FREE(create_cmd);
+	FREE(store_cmd);
 	FREE(entry_msg);
 
 	/**
