@@ -16,7 +16,8 @@
 
 #define _GNU_SOURCE
 
-#define NOOPT_FOUND_V -1
-#define CLEAN_CATCH_V -2
+#define NULL_BYTE 1
+#define NOT_FOUND -1
+#define ERR_CATCH -2
 
 #endif

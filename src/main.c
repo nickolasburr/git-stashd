@@ -7,9 +7,9 @@
 #include "main.h"
 
 int main (int argc, char *argv[]) {
-	int opt_index, arg_index, daemonize;
+	int i, j, opt_index, arg_index, daemonize;
 	char cwd[PATH_MAX], *pathname;
-	struct repo *repo;
+	struct repository *repo;
 	struct stash *stash;
 	struct sigaction action;
 
@@ -41,7 +41,7 @@ int main (int argc, char *argv[]) {
 	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
 
 		// Index of `--repository-path` option in `argv`
-		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOOPT_FOUND_V)
+		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOT_FOUND)
 		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
 
@@ -91,23 +91,26 @@ int main (int argc, char *argv[]) {
 	 * specific to the Git repository in question.
 	 */
 	repo = ALLOC(sizeof(*repo));
-	repo->path = ALLOC(sizeof(char) * (strlen(pathname) + 1));
 	repo->stash = ALLOC(sizeof(*stash));
-	repo->stash->entries = ALLOC(sizeof(char) * 4096);
 
 	// Copy `pathname` into repo struct `path` member.
 	copy(repo->path, pathname);
 
-	// Set stash entries on repo struct.
+	for (i = 0; i < 50; i += 1) {
+		repo->stash->entries[i] = ALLOC(sizeof(struct entry));
+	}
+
+	// Set stash on repository struct.
 	set_stash(repo);
 
-	printf("main -> repo->stash->entries -> \n%s\n", repo->stash->entries);
+	// List stash entries.
+	// list_entries(repo->stash);
 
-	printf("main -> is_worktree_dirty(repo) -> %d\n", is_worktree_dirty(repo));
+	for (j = 0; j < 50; j += 1) {
+		FREE(repo->stash->entries[j]);
+	}
 
-	FREE(repo->stash->entries);
 	FREE(repo->stash);
-	FREE(repo->path);
 	FREE(repo);
 
 	if (daemonize) {
@@ -115,33 +118,6 @@ int main (int argc, char *argv[]) {
 
 		write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 	}
-
-//	printf("My PID is: %d\n", getpid());
-//
-//	action.sa_handler = &on_signal;
-//	action.sa_flags = SA_RESTART;
-//	sigfillset(&action.sa_mask);
-//
-//	if (sigaction(SIGHUP, &action, NULL) == -1) {
-//		perror("ERROR: Cannot handle SIGHUP!");
-//	}
-//
-//	if (sigaction(SIGUSR1, &action, NULL) == -1) {
-//		perror("ERROR: Cannot handle SIGUSR1!");
-//	}
-//
-//	if (sigaction(SIGKILL, &action, NULL) == -1) {
-//		perror("ERROR: Cannot (and will never be able to) handle SIGKILL!");
-//	}
-//
-//	if (sigaction(SIGINT, &action, NULL) == -1) {
-//		perror("ERROR: Cannot handle SIGINT!");
-//	}
-//
-//	while (1) {
-//		printf("\nNapping for ~5 seconds\n");
-//		nap(5);
-//	}
 
 	return EXIT_SUCCESS;
 }

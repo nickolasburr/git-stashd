@@ -42,13 +42,13 @@ char *copy (char *buf, char *str) {
 /**
  * Get pointer to directory by its pathname.
  */
-DIR *get_dir (const char *path) {
+DIR *get_dir (const char *path, int *error) {
 	DIR *dp;
 
-	if (!(dp = opendir(path))) {
-		printf("Error opening directory %s\n", path);
+	*error = 0;
 
-		exit(EXIT_FAILURE);
+	if (!(dp = opendir(path))) {
+		*error = 1;
 	}
 
 	return dp;
@@ -57,13 +57,28 @@ DIR *get_dir (const char *path) {
 /**
  * Get pointer to file by its pathname.
  */
-FILE *get_file (const char *filename, const char *filemode) {
+FILE *get_file (const char *filename, const char *filemode, int *error) {
 	FILE *fp = fopen(filename, filemode);
 
-	if (!fp) {
-		printf("Error opening file %s\n", filename);
+	*error = 0;
 
-		exit(EXIT_FAILURE);
+	if (is_null(fp)) {
+		*error = 1;
+	}
+
+	return fp;
+}
+
+/**
+ * Get pointer to pipe.
+ */
+FILE *get_pipe (char *command, char *pipemode, int *error) {
+	FILE *fp = popen(command, pipemode);
+
+	*error = 0;
+
+	if (is_null(fp)) {
+		*error = 1;
 	}
 
 	return fp;
@@ -76,24 +91,26 @@ FILE *get_file (const char *filename, const char *filemode) {
  */
 int is_dir (const char *path) {
 	struct dirent *de;
-	int is_dir;
-	DIR *dp = get_dir(path);
+	int is_dir, error;
+	DIR *dp = get_dir(path, &error);
 
-	while ((de = readdir(dp))) {
-	#ifdef _DIRENT_HAVE_D_TYPE
-		if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
-			is_dir = (de->d_type == DT_DIR);
-		} else
-	#endif
-		{
-			struct stat st;
+	if (!error) {
+		while ((de = readdir(dp))) {
+		#ifdef _DIRENT_HAVE_D_TYPE
+			if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK) {
+				is_dir = (de->d_type == DT_DIR);
+			} else
+		#endif
+			{
+				struct stat st;
 
-			stat(de->d_name, &st);
-			is_dir = S_ISDIR(st.st_mode);
-		}
+				stat(de->d_name, &st);
+				is_dir = S_ISDIR(st.st_mode);
+			}
 
-		if (is_dir) {
-			return 1;
+			if (is_dir) {
+				return 1;
+			}
 		}
 	}
 
