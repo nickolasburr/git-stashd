@@ -20,4 +20,4 @@
 #define NOT_FOUND -1
 #define ERR_CATCH -2
 
-#endif
+#endif /* GIT_STASHD_COMMON_H */

@@ -4,8 +4,8 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#ifndef GIT_STASHD_REPO_H
-#define GIT_STASHD_REPO_H
+#ifndef GIT_STASHD_GIT_H
+#define GIT_STASHD_GIT_H
 
 #include "common.h"
 #include "daemon.h"
@@ -55,4 +55,4 @@ char *get_current_branch(int *error, struct repository *r, char *ref_buf);
 char *get_msg_by_index(int *error, struct stash *s, char *msg_buf, int index);
 char *get_sha_by_index(int *error, struct stash *s, char *sha_buf, int index);
 
-#endif /* GIT_STASHD_REPO_H */
+#endif /* GIT_STASHD_GIT_H */
