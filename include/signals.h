@@ -12,7 +12,7 @@
 #include "utils.h"
 
 void on_signal(int signal);
-void on_sigalrm(int signal);
+void on_awake(int signal);
 void nap(int seconds);
 
 #endif /* GIT_STASHD_SIGNALS_H */

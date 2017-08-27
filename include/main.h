@@ -12,8 +12,8 @@
 #include "except.h"
 #include "argv.h"
 #include "daemon.h"
+#include "git.h"
 #include "mem.h"
-#include "repo.h"
 #include "signals.h"
 #include "utils.h"
 

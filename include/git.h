@@ -1,5 +1,5 @@
 /**
- * repo.h
+ * git.h
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
@@ -20,15 +20,19 @@
 #define GIT_STASHD_SHA_LENGTH_MAX 42
 #define GIT_STASHD_TMS_LENGTH_MAX 18
 
+struct repository;
+struct stash;
 struct entry {
 	int index;
 	char hash[GIT_STASHD_SHA_LENGTH_MAX];
 	char message[GIT_STASHD_MSG_LENGTH_MAX];
+	struct stash *stash;
 };
 
 struct stash {
 	int length;
 	struct entry *entries[GIT_STASHD_ENT_LENGTH_MAX];
+	struct repository *repo;
 };
 
 struct repository {
@@ -36,18 +40,19 @@ struct repository {
 	struct stash *stash;
 };
 
-int is_repo(const char *path);
+int is_repo(char *path);
 int is_worktree_dirty(struct repository *r);
 
-struct entry *get_entry(struct stash *s, int index);
-int set_entry(struct repository *r);
-void list_entries(struct stash *s);
+void init_stash(int *error, struct repository *r);
 
-struct stash *get_stash(struct repository *r);
-void set_stash(struct repository *r);
+void add_entry(int *error, struct stash *s);
+void del_entry(void);
 
-char *get_current_branch(struct repository *r, char *ref_buf);
-char *get_hash_by_entry_index(struct repository *r, char *sha_buf, int index);
-char *get_message_by_entry_index(struct repository *r, char *msg_buf, int index);
+int has_coequal_entry(int *error, struct stash *s, struct entry *e);
+int is_coequal_entry(int *error, struct entry *e, struct entry *f);
+
+char *get_current_branch(int *error, struct repository *r, char *ref_buf);
+char *get_msg_by_index(int *error, struct stash *s, char *msg_buf, int index);
+char *get_sha_by_index(int *error, struct stash *s, char *sha_buf, int index);
 
 #endif /* GIT_STASHD_REPO_H */

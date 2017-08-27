@@ -7,8 +7,14 @@
 #include "main.h"
 
 int main (int argc, char *argv[]) {
-	int i, j, opt_index, arg_index, daemonize;
-	char cwd[PATH_MAX], *pathname;
+	int index,
+	    fp_err,
+	    fork_err,
+	    init_err,
+	    opt_index,
+	    daemonize,
+	    term_sig;
+	char cwd[PATH_MAX], *path;
 	struct repository *repo;
 	struct stash *stash;
 	struct sigaction action;
@@ -24,8 +30,8 @@ int main (int argc, char *argv[]) {
 	}
 
 	/**
-	 * Check if `--daemon` (`-D`) option was given. This will determine
-	 * if the process should detach from its controlling tty or not.
+	 * Check if `--daemon` option was given. This will determine
+	 * if a child process should be forked from the parent process.
 	 */
 	if (opt_in_array(GIT_STASHD_OPT_DAEMON_L, argv, argc) ||
 	    opt_in_array(GIT_STASHD_OPT_DAEMON_S, argv, argc)) {
@@ -33,8 +39,8 @@ int main (int argc, char *argv[]) {
 	}
 
 	/**
-	 * Check if `--repository-path` (`-P`) option was given. If so,
-	 * check if a pathname was given as an option argument. If not,
+	 * Check if `--repository-path` option was given. If so,
+	 * check if a path was given as an option argument. If not,
 	 * attempt to use `cwd` as the --repository-path pathname.
 	 */
 	if (opt_in_array(GIT_STASHD_OPT_REPOPATH_L, argv, argc) ||
@@ -45,34 +51,31 @@ int main (int argc, char *argv[]) {
 		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
 
-		// Index of `--repository-path` option argument in `argv`
-		arg_index = (opt_index + 1);
+		// Actual path string given as the option argument
+		path = argv[(opt_index + 1)];
 
-		// Actual pathname string given as the option argument
-		pathname  = argv[arg_index];
-
-		printf("--repository-path option given, pathname set to -> %s\n", pathname);
+		// printf("--repository-path option given, path set to -> %s\n", path);
 	} else {
 		/**
 		 * Since `--repository-path` wasn't given,
-		 * attempt to get the pathname from `cwd`.
+		 * attempt to get the path from `cwd`.
 		 */
-		pathname = getcwd(cwd, sizeof(cwd));
+		path = getcwd(cwd, sizeof(cwd));
 
-		if (!pathname) {
+		if (!path) {
 			printf("Unable to get the current working directory!\n");
 
 			exit(EXIT_FAILURE);
 		}
 
-		printf("--repository-path option not given, assuming current pathname -> %s\n", pathname);
+		// printf("--repository-path option not given, assuming current path -> %s\n", path);
 	}
 
 	/**
-	 * Validate pathname is an existing directory within reach.
+	 * Validate path is an existing directory within reach.
 	 */
-	if (!is_dir(pathname)) {
-		printf("%s is not a directory!\n", pathname);
+	if (!is_dir(path)) {
+		printf("%s is not a directory!\n", path);
 
 		exit(EXIT_FAILURE);
 	}
@@ -80,8 +83,21 @@ int main (int argc, char *argv[]) {
 	/**
 	 * And that it's also a Git repository.
 	 */
-	if (!is_repo(pathname)) {
-		printf("%s is not a Git repository!\n", pathname);
+	if (!is_repo(path)) {
+		printf("%s is not a Git repository!\n", path);
+
+		exit(EXIT_FAILURE);
+	}
+
+	if (daemonize) {
+		fork_proc(&fork_err);
+	}
+
+	/**
+	 * Exit failure, if an error was encountered forking the parent process.
+	 */
+	if (fork_err) {
+		printf("An error was encountered when trying to fork the main process.\n");
 
 		exit(EXIT_FAILURE);
 	}
@@ -92,32 +108,72 @@ int main (int argc, char *argv[]) {
 	 */
 	repo = ALLOC(sizeof(*repo));
 	repo->stash = ALLOC(sizeof(*stash));
+	repo->stash->repo = &repo;
 
-	// Copy `pathname` into repo struct `path` member.
-	copy(repo->path, pathname);
+	copy(repo->path, path);
 
-	for (i = 0; i < 50; i += 1) {
-		repo->stash->entries[i] = ALLOC(sizeof(struct entry));
+	for (index = 0; index < GIT_STASHD_ENT_LENGTH_MAX; index += 1) {
+		repo->stash->entries[index] = ALLOC(sizeof(struct entry));
+
+		/**
+		 * Set pointers to repo struct and stash struct.
+		 */
+		repo->stash->entries[index]->stash = repo->stash;
+		repo->stash->entries[index]->stash->repo = repo;
 	}
 
-	// Set stash on repository struct.
-	set_stash(repo);
+	/**
+	 * Initialize stash.
+	 */
+	init_stash(&init_err, repo);
 
-	// List stash entries.
-	// list_entries(repo->stash);
+	/**
+	 * Exit failure, if an error was encountered initializing the stash.
+	 */
+	if (init_err) {
+		printf("An error was encountered while trying to retrieve stash entries for %s\n", path);
 
-	for (j = 0; j < 50; j += 1) {
-		FREE(repo->stash->entries[j]);
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * Setup signal handling.
+	 */
+	printf("PID: %d\n", getpid());
+
+	action.sa_handler = &on_signal;
+	action.sa_flags = SA_RESTART;
+	sigfillset(&action.sa_mask);
+
+	if (sigaction(SIGHUP, &action, NULL) == -1) {
+		perror("Error handling SIGHUP\n");
+	}
+
+	if (sigaction(SIGINT, &action, NULL) == -1) {
+		perror("Error handling SIGINT\n");
+	}
+
+	if (sigaction(SIGUSR1, &action, NULL) == -1) {
+		perror("Error handling SIGUSR1\n");
+	}
+
+	if (sigaction(SIGUSR2, &action, NULL) == -1) {
+		perror("Error handling SIGUSR2\n");
+	}
+
+	while (1) {
+		printf("\nNapping for ~5 seconds.\n");
+		nap(5);
+	}
+
+	printf("PID %d terminated.\n", getpid());
+
+	for (index = 0; index < GIT_STASHD_ENT_LENGTH_MAX; index += 1) {
+		FREE(repo->stash->entries[index]);
 	}
 
 	FREE(repo->stash);
 	FREE(repo);
-
-	if (daemonize) {
-		fork_proc();
-
-		write_log_file(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
-	}
 
 	return EXIT_SUCCESS;
 }

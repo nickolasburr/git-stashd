@@ -9,21 +9,30 @@
 /**
  * Fork parent process and run in detached daemon mode.
  */
-void fork_proc (void) {
+void fork_proc (int *error) {
 	int x;
-
 	pid_t pid = fork();
 
+	*error = 0;
+
+	/**
+	 * @todo: Refactor control flow, it should be much more concise.
+	 */
+
 	if (pid < 0) {
-		exit(EXIT_FAILURE);
+		*error = 1;
+
+		return;
 	}
 
 	if (pid > 0) {
-		exit(EXIT_SUCCESS);
+		return;
 	}
 
 	if (setsid() < 0) {
-		exit(EXIT_FAILURE);
+		*error = 1;
+
+		return;
 	}
 
 	signal(SIGCHLD, SIG_IGN);
@@ -32,11 +41,13 @@ void fork_proc (void) {
 	pid = fork();
 
 	if (pid < 0) {
-		exit(EXIT_FAILURE);
+		*error = 1;
+
+		return;
 	}
 
 	if (pid > 0) {
-		exit(EXIT_SUCCESS);
+		return;
 	}
 
 	umask(0);
@@ -49,16 +60,23 @@ void fork_proc (void) {
 /**
  * Write to log file
  */
-void write_log_file (char *filename, char *filemode) {
-	int error;
-	FILE *fp = get_file(filename, filemode, &error);
+void write_log_file (int *error, char *filename, char *filemode) {
+	int fp_err;
+	FILE *fp;
 	pid_t pid = getpid();
 
-	if (error) {
-		exit(EXIT_FAILURE);
+	*error = 0;
+
+	fp = get_file(&fp_err, filename, filemode);
+
+	if (fp_err) {
+		fclose(fp);
+		*error = 1;
+
+		return;
 	}
 
-	fprintf(fp, "Starting git-stashd daemon with PID %lu.\n", (unsigned long) pid);
+	fprintf(fp, "%lu: Starting git-stashd autostash daemon.\n", (unsigned long) pid);
 
 	/**
 	 * Run a check against the stash every `interval` minutes.
@@ -69,6 +87,6 @@ void write_log_file (char *filename, char *filemode) {
 		break;
 	}
 
-	fprintf(fp, "Stopping git-stashd daemon with PID %lu.\n", (unsigned long) pid);
+	fprintf(fp, "%lu: Stopping git-stashd autostash daemon.\n", (unsigned long) pid);
 	fclose(fp);
 }

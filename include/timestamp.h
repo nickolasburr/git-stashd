@@ -10,7 +10,7 @@
 #include <time.h>
 #include "common.h"
 #include "mem.h"
-#include "repo.h"
+#include "git.h"
 #include "utils.h"
 
 char *get_timestamp(char *ts_buf);

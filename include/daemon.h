@@ -8,11 +8,13 @@
 #define GIT_STASHD_DAEMON_H
 
 #include "common.h"
-#include "repo.h"
+#include "git.h"
 #include "signals.h"
 #include "utils.h"
 
-void fork_proc(void);
-void write_log_file(char *filename, char *filemode);
+#define GIT_STASHD_DEFAULT_INTERVAL 600
+
+void fork_proc(int *error);
+void write_log_file(int *error, char *filename, char *filemode);
 
 #endif /* GIT_STASHD_DAEMON_H */
