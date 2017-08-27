@@ -42,7 +42,7 @@ char *copy (char *buf, char *str) {
 /**
  * Get pointer to directory by its pathname.
  */
-DIR *get_dir (const char *path, int *error) {
+DIR *get_dir (int *error, const char *path) {
 	DIR *dp;
 
 	*error = 0;
@@ -57,7 +57,7 @@ DIR *get_dir (const char *path, int *error) {
 /**
  * Get pointer to file by its pathname.
  */
-FILE *get_file (const char *filename, const char *filemode, int *error) {
+FILE *get_file (int *error, const char *filename, const char *filemode) {
 	FILE *fp = fopen(filename, filemode);
 
 	*error = 0;
@@ -72,7 +72,7 @@ FILE *get_file (const char *filename, const char *filemode, int *error) {
 /**
  * Get pointer to pipe.
  */
-FILE *get_pipe (char *command, char *pipemode, int *error) {
+FILE *open_pipe (int *error, const char *command, const char *pipemode) {
 	FILE *fp = popen(command, pipemode);
 
 	*error = 0;
@@ -85,6 +85,13 @@ FILE *get_pipe (char *command, char *pipemode, int *error) {
 }
 
 /**
+ * Close pointer to pipe.
+ */
+int close_pipe (FILE *fp) {
+	return pclose(fp);
+}
+
+/**
  * Determine if pathname is a directory.
  *
  * @notes Adapted from https://goo.gl/ZmWfbx
@@ -92,7 +99,7 @@ FILE *get_pipe (char *command, char *pipemode, int *error) {
 int is_dir (const char *path) {
 	struct dirent *de;
 	int is_dir, error;
-	DIR *dp = get_dir(path, &error);
+	DIR *dp = get_dir(&error, path);
 
 	if (!error) {
 		while ((de = readdir(dp))) {
