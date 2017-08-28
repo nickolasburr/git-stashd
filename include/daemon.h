@@ -12,9 +12,14 @@
 #include "signals.h"
 #include "utils.h"
 
-#define GIT_STASHD_DEFAULT_INTERVAL 600
+#define GIT_STASHD_LOG_DIR  "/var/log"
+#define GIT_STASHD_LOG_FILE "/var/log/git-stashd.log"
+#define GIT_STASHD_LOG_MODE "a+"
 
-void fork_proc(int *error);
-void write_log_file(int *error, char *filename, char *filemode);
+#define GIT_STASHD_INTERVAL 600
+
+void fork_proc(void);
+void touch_log_file(int *error, char *log_file, char *filemode);
+void write_log_file(int *error, char *filename, char *filemode, char *message);
 
 #endif /* GIT_STASHD_DAEMON_H */

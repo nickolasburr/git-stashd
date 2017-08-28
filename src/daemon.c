@@ -9,58 +9,76 @@
 /**
  * Fork parent process and run in detached daemon mode.
  */
-void fork_proc (int *error) {
-	int x;
-	pid_t pid = fork();
+void fork_proc () {
+	int fd;
 
-	*error = 0;
-
-	/**
-	 * @todo: Refactor control flow, it should be much more concise.
-	 */
-
-	if (pid < 0) {
-		*error = 1;
-
-		return;
-	}
-
-	if (pid > 0) {
-		return;
+	switch (fork()) {
+		case 0:
+			break;
+		case -1:
+			exit(EXIT_FAILURE);
+		default:
+			exit(EXIT_SUCCESS);
 	}
 
 	if (setsid() < 0) {
-		*error = 1;
-
-		return;
+		exit(EXIT_FAILURE);
 	}
 
-	signal(SIGCHLD, SIG_IGN);
 	signal(SIGHUP, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
 
-	pid = fork();
-
-	if (pid < 0) {
-		*error = 1;
-
-		return;
-	}
-
-	if (pid > 0) {
-		return;
+	switch (fork()) {
+		case 0:
+			break;
+		case -1:
+			exit(EXIT_FAILURE);
+		default:
+			exit(EXIT_SUCCESS);
 	}
 
 	umask(0);
 
-	for (x = sysconf(_SC_OPEN_MAX); x >= 0; x--) {
-		close(x);
+	chdir("/");
+
+	for (fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--) {
+		close(fd);
 	}
+
+	stdin  = fopen("/dev/null", "r");
+	stdout = fopen("/dev/null", "w+");
+	stderr = fopen("/dev/null", "w+");
 }
 
 /**
- * Write to log file
+ * Create log file.
  */
-void write_log_file (int *error, char *filename, char *filemode) {
+void touch_log_file (int *error, char *log_file, char *filemode) {
+	FILE *fp;
+	int fp_err;
+
+	*error = 0;
+
+	/**
+	 * Remove trailing slash from path, if present.
+	 */
+	if (log_file[strlen(log_file) - 1] == '/') {
+		log_file[strlen(log_file) - 1] = 0;
+	}
+
+	fp = get_file(&fp_err, log_file, filemode);
+
+	if (fp_err) {
+		*error = 1;
+	}
+
+	fclose(fp);
+}
+
+/**
+ * Write to log file.
+ */
+void write_log_file (int *error, char *filename, char *filemode, char *message) {
 	int fp_err;
 	FILE *fp;
 	pid_t pid = getpid();
@@ -70,23 +88,10 @@ void write_log_file (int *error, char *filename, char *filemode) {
 	fp = get_file(&fp_err, filename, filemode);
 
 	if (fp_err) {
-		fclose(fp);
 		*error = 1;
-
-		return;
+	} else {
+		fprintf(fp, "%zu: %s\n", pid, message);
 	}
 
-	fprintf(fp, "%lu: Starting git-stashd autostash daemon.\n", (unsigned long) pid);
-
-	/**
-	 * Run a check against the stash every `interval` minutes.
-	 */
-	while (1) {
-		sleep(30);
-
-		break;
-	}
-
-	fprintf(fp, "%lu: Stopping git-stashd autostash daemon.\n", (unsigned long) pid);
 	fclose(fp);
 }

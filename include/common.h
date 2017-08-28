@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "error.h"
 
 #define _GNU_SOURCE
 
@@ -20,4 +21,4 @@
 #define NOT_FOUND -1
 #define ERR_CATCH -2
 
-#endif
+#endif /* GIT_STASHD_COMMON_H */

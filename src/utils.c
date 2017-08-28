@@ -34,6 +34,15 @@ char *copy (char *buf, char *str) {
 }
 
 /**
+ * GNU `basename` polyfill
+ */
+char *base_name (char *path) {
+	char *base = strrchr(path, '/');
+
+	return base ? (base + 1) : path;
+}
+
+/**
  *
  * Filesystem utilities
  *
@@ -140,15 +149,55 @@ int is_file (const char *path) {
 }
 
 /**
+ * Determine if pathname is writable.
+ */
+int is_writable (const char *path) {
+	if (!access(path, W_OK)) {
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
  *
  * Type utilities
  *
  */
 
+/**
+ * `isdigit` wrapper
+ */
+int is_digit (int c) {
+	return isdigit(c);
+}
+
+/**
+ * Determine if pointer is a null pointer.
+ */
 int is_null (void *ptr) {
 	if (ptr == NULL) {
 		return 1;
 	}
 
 	return 0;
+}
+
+/**
+ * Determine if string is numeric.
+ */
+int is_numeric (char *str) {
+	int index;
+
+	index = 0;
+
+	while (str[index] != '\0') {
+		if (!is_digit(str[index])) {
+			return 0;
+		}
+
+		index++;
+	}
+
+	return 1;
 }
