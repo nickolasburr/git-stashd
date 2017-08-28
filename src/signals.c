@@ -30,10 +30,14 @@ void on_awake (int signal) {
 	if (signal != SIGALRM) {
 		fprintf(stderr, "Caught wrong signal: %d\n", signal);
 	}
+
+	/**
+	 * @todo: Finish building this.
+	 */
 }
 
 /**
- * Augmented sleep function for signal handling.
+ * Augmented sleep function with signal handling.
  */
 void nap (int seconds) {
 	struct sigaction action;
@@ -49,6 +53,4 @@ void nap (int seconds) {
 
 	alarm(seconds);
 	sigsuspend(&mask);
-
-	printf("nap: sigsuspend returned.\n");
 }
