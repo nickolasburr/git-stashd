@@ -29,7 +29,7 @@ char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
 		close_pipe(fp);
 		*error = 1;
 
-		return;
+		return sha_buf;
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_SHA_LENGTH_MAX, fp))) {
@@ -67,7 +67,7 @@ char *get_msg_by_index (int *error, struct stash *s, char *msg_buf, int index) {
 		close_pipe(fp);
 		*error = 1;
 
-		return;
+		return msg_buf;
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_MSG_LENGTH_MAX, fp))) {
@@ -103,7 +103,7 @@ char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
 		close_pipe(fp);
 		*error = 1;
 
-		return;
+		return ref_buf;
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_REF_LENGTH_MAX, fp))) {
@@ -178,7 +178,20 @@ void add_entry (int *error, struct stash *s) {
 	store_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
 	sprintf(store_cmd, sformat, s->repo->path, entry_msg, sha_buf);
 
+	/**
+	 * @todo: Use a better solution than system.
+	 */
 	entry_status = system(store_cmd);
+
+	/**
+	 * @debug
+	 */
+	int test_err;
+	char *log_fmt = "Exit status is %d\n";
+	char *log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
+	sprintf(log_msg, log_fmt, entry_status);
+
+	write_log_file(&test_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
 
 	/**
 	 * If it was a non-zero exit, we can infer an error was encountered.
@@ -216,9 +229,6 @@ void init_stash (int *error, struct repository *r) {
 	fp = open_pipe(&fp_err, stash_list_cmd, "r");
 
 	if (fp_err) {
-		/**
-		 * Close pipe, set error status to 1.
-		 */
 		close_pipe(fp);
 		*error = 1;
 
