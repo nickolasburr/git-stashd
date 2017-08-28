@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include "common.h"
 #include "signals.h"
 
@@ -26,6 +27,8 @@
 int compare(char *one, char *two);
 char *concat(char *buf, char *str);
 char *copy(char *buf, char *str);
+char *length(char *buf);
+char *base_name(char *path);
 
 /**
  * Filesystem utilities
@@ -49,6 +52,8 @@ int is_char(const char *path);
  * Type utilities
  */
 
+int is_digit(int c);
 int is_null(void *ptr);
+int is_numeric(char *str);
 
 #endif /* GIT_STASHD_UTILS_H */
