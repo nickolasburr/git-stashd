@@ -69,4 +69,5 @@ void Except_raise(const T *e, const char *file, int line);
 } while (0)
 
 #undef T
+
 #endif /* GIT_STASHD_EXCEPT_H */
