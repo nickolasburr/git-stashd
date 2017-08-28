@@ -40,8 +40,7 @@ int opt_in_array (const char* const option, const char *arr[], size_t size) {
  * Print formatted usage message to stdout
  */
 void pfusage () {
-	unsigned int i;
-	int pfindent = 5;
+	unsigned int i, pfindent = 5;
 	const char* const options[GIT_STASHD_OPT_COUNT] = {
 		"--help",
 		"--daemon",
