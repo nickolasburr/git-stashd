@@ -8,7 +8,6 @@
 #define GIT_STASHD_ERROR_H
 
 #include "common.h"
-#include "utils.h"
 
 void die(char *error, char *file, int line);
 
