@@ -198,9 +198,7 @@ void add_entry (int *error, struct stash *s) {
  */
 void init_stash (int *error, struct repository *r) {
 	FILE *fp;
-	int index,
-	    fp_err,
-	    ae_err;
+	int index, fp_err;
 	static const char *format = "/usr/bin/git -C %s stash list --format='%%s'";
 	char *stash_list_cmd,
 	     line[GIT_STASHD_MSG_LENGTH_MAX];
@@ -248,10 +246,6 @@ void init_stash (int *error, struct repository *r) {
 		FREE(msg_buf);
 
 		index++;
-	}
-
-	if (is_worktree_dirty(r)) {
-		add_entry(&ae_err, r->stash);
 	}
 
 	/**
