@@ -22,7 +22,10 @@ int main (int argc, char **argv) {
 	struct stash *stash;
 	struct sigaction action;
 
-	daemonize = 0;
+	/**
+	 * Daemonize by default.
+	 */
+	daemonize = 1;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
@@ -35,12 +38,12 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Check if `--daemon` option was given. This will determine
+	 * Check if `--foreground` option was given. This will determine
 	 * if a child process should be forked from the parent process.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_DAEMON_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_DAEMON_S, argv, argc)) {
-		daemonize = 1;
+	if (opt_in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
+	    opt_in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
+		daemonize = 0;
 	}
 
 	/**

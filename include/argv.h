@@ -14,8 +14,8 @@
 #define GIT_STASHD_OPT_HELP_L "--help"
 #define GIT_STASHD_OPT_HELP_S "-h"
 
-#define GIT_STASHD_OPT_DAEMON_L "--daemon"
-#define GIT_STASHD_OPT_DAEMON_S "-D"
+#define GIT_STASHD_OPT_FOREGROUND_L "--foreground"
+#define GIT_STASHD_OPT_FOREGROUND_S "-F"
 
 #define GIT_STASHD_OPT_LOG_FILE_L "--log-file"
 #define GIT_STASHD_OPT_LOG_FILE_S "-L"

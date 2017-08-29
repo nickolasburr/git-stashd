@@ -43,7 +43,7 @@ void pfusage () {
 	unsigned int i, pfindent = 5;
 	const char* const options[GIT_STASHD_OPT_COUNT] = {
 		"--help",
-		"--daemon",
+		"--foreground",
 		"--interval",
 		"--repository-path",
 	};
