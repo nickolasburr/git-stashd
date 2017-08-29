@@ -86,21 +86,21 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Check if `--repository-path` option was given. If so,
+	 * Check if `--path` option was given. If so,
 	 * get the absolute path of the pathname given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_REPOPATH_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
+	if (opt_in_array(GIT_STASHD_OPT_PATH_L, argv, argc) ||
+	    opt_in_array(GIT_STASHD_OPT_PATH_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
+		opt_index = (opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc) != NOT_FOUND)
+		          ? opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc)
+		          : opt_get_index(GIT_STASHD_OPT_PATH_S, argv, argc);
 
 		path = realpath(argv[(opt_index + 1)], path_buf);
 	} else {
 		/**
-		 * Since `--repository-path` wasn't given,
-		 * attempt to get the absolute path via `cwd`.
+		 * Since `--path` wasn't given, attempt
+		 * to get the absolute path via `cwd`.
 		 */
 		path = getcwd(path_buf, PATH_MAX);
 
