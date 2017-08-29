@@ -8,18 +8,24 @@
 
 int main (int argc, char **argv) {
 	int index,
-	    ae_err,
 	    fp_err,
 	    init_err,
 	    opt_index,
 	    daemonize,
 	    interval;
-	char cwd[PATH_MAX], *s_interval, *log_file, *path;
+	char path_buf[PATH_MAX],
+	     *cwd,
+	     *s_interval,
+	     *log_file,
+	     *path;
 	struct repository *repo;
 	struct stash *stash;
 	struct sigaction action;
 
-	daemonize = 0;
+	/**
+	 * Daemonize by default.
+	 */
+	daemonize = 1;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
@@ -32,12 +38,12 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Check if `--daemon` option was given. This will determine
+	 * Check if `--foreground` option was given. This will determine
 	 * if a child process should be forked from the parent process.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_DAEMON_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_DAEMON_S, argv, argc)) {
-		daemonize = 1;
+	if (opt_in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
+	    opt_in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
+		daemonize = 0;
 	}
 
 	/**
@@ -81,8 +87,7 @@ int main (int argc, char **argv) {
 
 	/**
 	 * Check if `--repository-path` option was given. If so,
-	 * check if a path was given as an option argument. If not,
-	 * attempt to use `cwd` as the --repository-path pathname.
+	 * get the absolute path of the pathname given.
 	 */
 	if (opt_in_array(GIT_STASHD_OPT_REPOPATH_L, argv, argc) ||
 	    opt_in_array(GIT_STASHD_OPT_REPOPATH_S, argv, argc)) {
@@ -91,13 +96,13 @@ int main (int argc, char **argv) {
 		          ? opt_get_index(GIT_STASHD_OPT_REPOPATH_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_REPOPATH_S, argv, argc);
 
-		path = argv[(opt_index + 1)];
+		path = realpath(argv[(opt_index + 1)], path_buf);
 	} else {
 		/**
 		 * Since `--repository-path` wasn't given,
-		 * attempt to get the path from `cwd`.
+		 * attempt to get the absolute path via `cwd`.
 		 */
-		path = getcwd(cwd, PATH_MAX);
+		path = getcwd(path_buf, PATH_MAX);
 
 		if (is_null(path)) {
 			printf("Unable to get the current working directory!\n");
@@ -194,7 +199,7 @@ int main (int argc, char **argv) {
 		 * Otherwise, send it to STDERR.
 		 */
 		if (daemonize) {
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, sprintf("An error was encountered while trying to retrieve stash entries for %s\n", path));
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, "An error was encountered while trying to retrieve stash entries...\n");
 		} else {
 			fprintf(stderr, "An error was encountered while trying to retrieve stash entries for %s\n", path);
 		}
@@ -230,6 +235,7 @@ int main (int argc, char **argv) {
 	 */
 
 	while (1) {
+		int ae_err;
 		char *message,
 		     *lformat = "git-stashd autostash updated @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
@@ -248,6 +254,12 @@ int main (int argc, char **argv) {
 
 		if (is_worktree_dirty(repo)) {
 			add_entry(&ae_err, repo->stash);
+		}
+
+		if (ae_err) {
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, "Encountered an error when trying to add an entry...\n");
+
+			exit(EXIT_FAILURE);
 		}
 
 		/**

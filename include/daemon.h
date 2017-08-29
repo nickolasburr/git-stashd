@@ -8,7 +8,6 @@
 #define GIT_STASHD_DAEMON_H
 
 #include "common.h"
-#include "git.h"
 #include "signals.h"
 #include "utils.h"
 
