@@ -20,8 +20,8 @@
 #define GIT_STASHD_OPT_LOG_FILE_L "--log-file"
 #define GIT_STASHD_OPT_LOG_FILE_S "-L"
 
-#define GIT_STASHD_OPT_REPOPATH_L "--repository-path"
-#define GIT_STASHD_OPT_REPOPATH_S "-P"
+#define GIT_STASHD_OPT_PATH_L "--path"
+#define GIT_STASHD_OPT_PATH_S "-P"
 
 #define GIT_STASHD_OPT_INTERVAL_L "--interval"
 #define GIT_STASHD_OPT_INTERVAL_S "-I"
