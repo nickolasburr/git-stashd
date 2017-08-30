@@ -11,6 +11,9 @@
  */
 void fork_proc () {
 	int fd;
+	uid_t euid;
+
+	euid = geteuid();
 
 	switch (fork()) {
 		case 0:
@@ -20,6 +23,8 @@ void fork_proc () {
 		default:
 			exit(EXIT_SUCCESS);
 	}
+
+	seteuid(euid);
 
 	if (setsid() < 0) {
 		exit(EXIT_FAILURE);
@@ -61,6 +66,7 @@ void touch_log_file (int *error, char *log_file, char *filemode) {
 
 	/**
 	 * Remove trailing slash from path, if present.
+	 * e.g. /var/log/alternate.log/
 	 */
 	if (log_file[strlen(log_file) - 1] == '/') {
 		log_file[strlen(log_file) - 1] = 0;
