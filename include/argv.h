@@ -32,8 +32,6 @@ const char* const options[GIT_STASHD_OPT_COUNT];
 int pfindent;
 size_t size;
 
-int opt_get_index(const char* const option, const char *arr[], size_t size);
-int opt_in_array(const char* const option, const char *arr[], size_t size);
 void pfusage(void);
 
 #endif /* GIT_STASHD_ARGV_H */

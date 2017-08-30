@@ -13,6 +13,15 @@
  */
 
 /**
+ * GNU `basename` polyfill
+ */
+char *base_name (char *path) {
+	char *base = strrchr(path, '/');
+
+	return base ? (base + 1) : path;
+}
+
+/**
  * `strcmp` wrapper
  */
 int compare (char *one, char *two) {
@@ -34,12 +43,33 @@ char *copy (char *buf, char *str) {
 }
 
 /**
- * GNU `basename` polyfill
+ * Get index of element in array.
  */
-char *base_name (char *path) {
-	char *base = strrchr(path, '/');
+int index_of (char *element, char *array[], size_t size) {
+	unsigned int i;
 
-	return base ? (base + 1) : path;
+	for (i = 0; i < size; i += 1) {
+		if (!compare(array[i], element)) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * Check if element exists in array.
+ */
+int in_array (char *element, char *array[], size_t size) {
+	unsigned int i;
+
+	for (i = 0; i < size; i += 1) {
+		if (!compare(array[i], element)) {
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 /**
