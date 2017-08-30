@@ -186,10 +186,11 @@ void add_entry (int *error, struct stash *s) {
 	/**
 	 * @debug
 	 */
+	uid_t euid = geteuid();
 	int test_err;
-	char *log_fmt = "Exit status is %d\n";
-	char *log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
-	sprintf(log_msg, log_fmt, entry_status);
+	char *log_fmt = "geteuid -> %d, exit status is %d\n";
+	char *log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt) + NULL_BYTE) + (sizeof(int) + 2)));
+	sprintf(log_msg, log_fmt, (int) euid, entry_status);
 
 	write_log_file(&test_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
 

@@ -14,8 +14,8 @@ int main (int argc, char **argv) {
 	    daemonize,
 	    interval;
 	char path_buf[PATH_MAX],
+	     s_interval[4],
 	     *cwd,
-	     *s_interval,
 	     *log_file,
 	     *path;
 	struct repository *repo;
@@ -71,18 +71,22 @@ int main (int argc, char **argv) {
 		          ? opt_get_index(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
 		          : opt_get_index(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
 
-		interval = argv[(opt_index + 1)];
+		copy(s_interval, argv[(opt_index + 1)]);
+
+		printf("main -> s_interval -> %s\n", s_interval);
 
 		/**
 		 * Verify `--interval` option argument is a valid number.
 		 */
-		if (!is_numeric(interval)) {
+		if (!is_numeric(s_interval)) {
 			fprintf(stderr, "Interval given via --interval is not a valid number!\n");
 
 			exit(EXIT_FAILURE);
 		}
+
+		interval = atoi(s_interval);
 	} else {
-		interval = GIT_STASHD_INTERVAL;
+		copy(interval, GIT_STASHD_INTERVAL);
 	}
 
 	/**
@@ -257,14 +261,17 @@ int main (int argc, char **argv) {
 		}
 
 		if (ae_err) {
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, "Encountered an error when trying to add an entry...\n");
+			char *log_msg, *log_fmt = "Encountered an error when trying to add an entry. Status code %d\n";
+			log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt)) + (sizeof(int) + 1)));
+			sprintf(log_msg, log_fmt, ae_err);
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
+			FREE(log_msg);
 
 			exit(EXIT_FAILURE);
 		}
 
 		/**
-		 * Wait `interval` seconds before returning
-		 * here and continuing the loop.
+		 * Wait `interval` seconds before returning continuing the loop.
 		 */
 		nap(interval);
 	}
