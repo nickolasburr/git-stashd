@@ -30,8 +30,8 @@ int main (int argc, char **argv) {
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
 		pfusage();
 
 		exit(EXIT_SUCCESS);
@@ -41,20 +41,20 @@ int main (int argc, char **argv) {
 	 * Check if `--foreground` option was given. This will determine
 	 * if a child process should be forked from the parent process.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
 		daemonize = 0;
 	}
 
 	/**
 	 * Check if `--log-file` option was given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
 
 		log_file = argv[(opt_index + 1)];
 	} else {
@@ -64,12 +64,12 @@ int main (int argc, char **argv) {
 	/**
 	 * Check if `--interval` option was given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_INTERVAL_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_INTERVAL_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_INTERVAL_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_INTERVAL_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_INTERVAL_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_INTERVAL_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
 
 		copy(s_interval, argv[(opt_index + 1)]);
 
@@ -86,19 +86,19 @@ int main (int argc, char **argv) {
 
 		interval = atoi(s_interval);
 	} else {
-		copy(interval, GIT_STASHD_INTERVAL);
+		interval = GIT_STASHD_INTERVAL;
 	}
 
 	/**
 	 * Check if `--path` option was given. If so,
 	 * get the absolute path of the pathname given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_PATH_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_PATH_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_PATH_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_PATH_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_PATH_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_PATH_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_PATH_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_PATH_S, argv, argc);
 
 		path = realpath(argv[(opt_index + 1)], path_buf);
 	} else {
