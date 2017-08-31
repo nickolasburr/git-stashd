@@ -6,6 +6,38 @@
 
 #include "git.h"
 
+int has_coequal_entry (int *error, struct stash *s) {
+	int index, coequal_status;
+	static const char *diff_stash_fmt = "/usr/bin/git -C %s diff --quiet --exit-code stash@{%d}";
+	char *diff_stash_cmd;
+
+	*error = 0;
+
+	for (index = 0; index < s->length; index++) {
+		diff_stash_cmd = ALLOC(sizeof(char) * ((strlen(diff_stash_fmt) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (sizeof(int) + 1)));
+		sprintf(diff_stash_cmd, diff_stash_fmt, s->repo->path, index);
+
+		/**
+		 * Use `git-diff` to check if if the entry
+		 * diff is equivalent to the worktree diff.
+		 */
+		if ((coequal_status = system(diff_stash_cmd)) == -1) {
+			*error = 1;
+		}
+
+		FREE(diff_stash_cmd);
+
+		/**
+		 * If there is a matching entry, return 1.
+		 */
+		if (!coequal_status) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
 	FILE *fp;
 	int fp_err;
@@ -83,7 +115,7 @@ char *get_msg_by_index (int *error, struct stash *s, char *msg_buf, int index) {
 }
 
 /**
- * Get name of current branch.
+ * Get the name of current branch.
  */
 char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
 	FILE *fp;
@@ -271,7 +303,7 @@ void init_stash (int *error, struct repository *r) {
 /**
  * Check if the worktree is dirty.
  */
-int is_worktree_dirty (struct repository *r) {
+int is_worktree_dirty (int *error, struct repository *r) {
 	int index_status;
 	char *diff_index_cmd, *update_index_cmd;
 	/**
@@ -279,6 +311,8 @@ int is_worktree_dirty (struct repository *r) {
 	 */
 	static const char *diff_index_format   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
 	                  *update_index_format = "/usr/bin/git -C %s update-index -q --really-refresh";
+
+	*error = 0;
 
 	/**
 	 * Allocate space for `diff_index_cmd` and `update_index_cmd`,
@@ -292,13 +326,19 @@ int is_worktree_dirty (struct repository *r) {
 
 	/**
 	 * Refresh the index before checking state.
+	 * Set error marker if an error occurred.
 	 */
-	system(update_index_cmd);
+	if (system(update_index_cmd) == -1) {
+		*error = 1;
+	}
 
 	/**
 	 * Get state information via `diff-index`.
+	 * Set error marker if an error occurred.
 	 */
-	index_status = system(diff_index_cmd);
+	if ((index_status = system(diff_index_cmd)) == -1) {
+		*error = 1;
+	}
 
 	/**
 	 * Deallocate space for `diff_index_cmd`, `update_index_cmd`.
