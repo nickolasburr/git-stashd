@@ -12,6 +12,8 @@ int main (int argc, char **argv) {
 	    init_err,
 	    opt_index,
 	    daemonize,
+	    entry_status,
+	    index_status,
 	    interval;
 	char path_buf[PATH_MAX],
 	     s_interval[4],
@@ -239,9 +241,12 @@ int main (int argc, char **argv) {
 	 */
 
 	while (1) {
-		int ae_err;
-		char *message,
-		     *lformat = "git-stashd autostash updated @ %s",
+		int sd_err, wt_err;
+		char *log_info_msg,
+		     /**
+			  * @todo: Move this to a macro.
+			  */
+		     *log_info_fmt = "git-stashd: Last check ran @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
 
 		/**
@@ -249,29 +254,83 @@ int main (int argc, char **argv) {
 		 */
 		get_timestamp(ts_buf);
 
-		message = ALLOC(sizeof(char) * ((strlen(lformat) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
-		sprintf(message, lformat, ts_buf);
+		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+		sprintf(log_info_msg, log_info_fmt, ts_buf);
 
-		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, message);
+		/**
+		 * Write informational message to log file.
+		 */
+		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_info_msg);
 
-		FREE(message);
+		FREE(log_info_msg);
 
-		if (is_worktree_dirty(repo)) {
-			add_entry(&ae_err, repo->stash);
-		}
+		/**
+		 * Get the current index status from the worktree.
+		 */
+		index_status = is_worktree_dirty(&wt_err, repo);
 
-		if (ae_err) {
-			char *log_msg, *log_fmt = "Encountered an error when trying to add an entry. Status code %d\n";
-			log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt)) + (sizeof(int) + 1)));
-			sprintf(log_msg, log_fmt, ae_err);
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
-			FREE(log_msg);
+		if (wt_err) {
+			char *wt_err_msg, wt_err_fmt = "Encountered an error when checking the index status. Status code %d\n";
 
-			// exit(EXIT_FAILURE);
+			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt)) + (sizeof(int) + 1)));
+			sprintf(wt_err_msg, wt_err_fmt, wt_err);
+
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, wt_err_msg);
+
+			FREE(wt_err_msg);
+
+			exit(EXIT_FAILURE);
 		}
 
 		/**
-		 * Wait `interval` seconds before returning continuing the loop.
+		 * Check the stash for an existing entry
+		 * matching the current worktree diff.
+		 */
+		entry_status = has_coequal_entry(&sd_err, repo->stash);
+
+		if (sd_err) {
+			char *sd_err_msg, sd_err_fmt = "Encountered an error when searching for a matching entry. Status code %d\n";
+
+			sd_err_msg = ALLOC(sizeof(char) * ((strlen(sd_err_fmt)) + (sizeof(int) + 1)));
+			sprintf(sd_err_msg, sd_err_fmt, sd_err);
+
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, sd_err_msg);
+
+			FREE(sd_err_msg);
+
+			exit(EXIT_FAILURE);
+		}
+
+		/**
+		 * If the worktree is dirty and there's not an
+		 * equivalent entry, create and add a new entry.
+		 */
+		if (index_status && !entry_status) {
+			int ae_err;
+
+			add_entry(&ae_err, repo->stash);
+
+			if (ae_err) {
+				char *log_err_msg, log_err_fmt = "Encountered an error when adding an entry to the stash. Status code %d\n";
+
+				log_err_msg = ALLOC(sizeof(char) * ((strlen(log_err_fmt)) + (sizeof(int) + 1)));
+				sprintf(log_err_msg, log_err_fmt, ae_err);
+
+				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_err_msg);
+
+				FREE(log_err_msg);
+
+				exit(EXIT_FAILURE);
+			}
+
+			/**
+			 * Update stash length.
+			 */
+			repo->stash->length++;
+		}
+
+		/**
+		 * Wait `interval` seconds before continuing the loop.
 		 */
 		nap(interval);
 	}
