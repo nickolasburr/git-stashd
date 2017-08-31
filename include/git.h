@@ -41,15 +41,11 @@ struct repository {
 };
 
 int is_repo(char *path);
-int is_worktree_dirty(struct repository *r);
-
-void init_stash(int *error, struct repository *r);
+int is_worktree_dirty(int *error, struct repository *r);
 
 void add_entry(int *error, struct stash *s);
-void del_entry(void);
-
-int has_coequal_entry(int *error, struct stash *s, struct entry *e);
-int is_coequal_entry(int *error, struct entry *e, struct entry *f);
+int has_coequal_entry(int *error, struct stash *s);
+void init_stash(int *error, struct repository *r);
 
 char *get_current_branch(int *error, struct repository *r, char *ref_buf);
 char *get_msg_by_index(int *error, struct stash *s, char *msg_buf, int index);

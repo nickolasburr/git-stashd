@@ -12,10 +12,12 @@ int main (int argc, char **argv) {
 	    init_err,
 	    opt_index,
 	    daemonize,
+	    entry_status,
+	    index_status,
 	    interval;
 	char path_buf[PATH_MAX],
+	     s_interval[4],
 	     *cwd,
-	     *s_interval,
 	     *log_file,
 	     *path;
 	struct repository *repo;
@@ -30,8 +32,8 @@ int main (int argc, char **argv) {
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
 		pfusage();
 
 		exit(EXIT_SUCCESS);
@@ -41,20 +43,20 @@ int main (int argc, char **argv) {
 	 * Check if `--foreground` option was given. This will determine
 	 * if a child process should be forked from the parent process.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
 		daemonize = 0;
 	}
 
 	/**
 	 * Check if `--log-file` option was given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
 
 		log_file = argv[(opt_index + 1)];
 	} else {
@@ -64,23 +66,27 @@ int main (int argc, char **argv) {
 	/**
 	 * Check if `--interval` option was given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_INTERVAL_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_INTERVAL_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_INTERVAL_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_INTERVAL_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_INTERVAL_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_INTERVAL_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
 
-		interval = argv[(opt_index + 1)];
+		copy(s_interval, argv[(opt_index + 1)]);
+
+		printf("main -> s_interval -> %s\n", s_interval);
 
 		/**
 		 * Verify `--interval` option argument is a valid number.
 		 */
-		if (!is_numeric(interval)) {
+		if (!is_numeric(s_interval)) {
 			fprintf(stderr, "Interval given via --interval is not a valid number!\n");
 
 			exit(EXIT_FAILURE);
 		}
+
+		interval = atoi(s_interval);
 	} else {
 		interval = GIT_STASHD_INTERVAL;
 	}
@@ -89,12 +95,12 @@ int main (int argc, char **argv) {
 	 * Check if `--path` option was given. If so,
 	 * get the absolute path of the pathname given.
 	 */
-	if (opt_in_array(GIT_STASHD_OPT_PATH_L, argv, argc) ||
-	    opt_in_array(GIT_STASHD_OPT_PATH_S, argv, argc)) {
+	if (in_array(GIT_STASHD_OPT_PATH_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_PATH_S, argv, argc)) {
 
-		opt_index = (opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc) != NOT_FOUND)
-		          ? opt_get_index(GIT_STASHD_OPT_PATH_L, argv, argc)
-		          : opt_get_index(GIT_STASHD_OPT_PATH_S, argv, argc);
+		opt_index = (index_of(GIT_STASHD_OPT_PATH_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_PATH_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_PATH_S, argv, argc);
 
 		path = realpath(argv[(opt_index + 1)], path_buf);
 	} else {
@@ -235,9 +241,12 @@ int main (int argc, char **argv) {
 	 */
 
 	while (1) {
-		int ae_err;
-		char *message,
-		     *lformat = "git-stashd autostash updated @ %s",
+		int sd_err, wt_err;
+		char *log_info_msg,
+		     /**
+			  * @todo: Move this to a macro.
+			  */
+		     *log_info_fmt = "git-stashd: Last check ran @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
 
 		/**
@@ -245,26 +254,83 @@ int main (int argc, char **argv) {
 		 */
 		get_timestamp(ts_buf);
 
-		message = ALLOC(sizeof(char) * ((strlen(lformat) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
-		sprintf(message, lformat, ts_buf);
+		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+		sprintf(log_info_msg, log_info_fmt, ts_buf);
 
-		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, message);
+		/**
+		 * Write informational message to log file.
+		 */
+		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_info_msg);
 
-		FREE(message);
+		FREE(log_info_msg);
 
-		if (is_worktree_dirty(repo)) {
-			add_entry(&ae_err, repo->stash);
-		}
+		/**
+		 * Get the current index status from the worktree.
+		 */
+		index_status = is_worktree_dirty(&wt_err, repo);
 
-		if (ae_err) {
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, "Encountered an error when trying to add an entry...\n");
+		if (wt_err) {
+			char *wt_err_msg, wt_err_fmt = "Encountered an error when checking the index status. Status code %d\n";
+
+			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt)) + (sizeof(int) + 1)));
+			sprintf(wt_err_msg, wt_err_fmt, wt_err);
+
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, wt_err_msg);
+
+			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
 		}
 
 		/**
-		 * Wait `interval` seconds before returning
-		 * here and continuing the loop.
+		 * Check the stash for an existing entry
+		 * matching the current worktree diff.
+		 */
+		entry_status = has_coequal_entry(&sd_err, repo->stash);
+
+		if (sd_err) {
+			char *sd_err_msg, sd_err_fmt = "Encountered an error when searching for a matching entry. Status code %d\n";
+
+			sd_err_msg = ALLOC(sizeof(char) * ((strlen(sd_err_fmt)) + (sizeof(int) + 1)));
+			sprintf(sd_err_msg, sd_err_fmt, sd_err);
+
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, sd_err_msg);
+
+			FREE(sd_err_msg);
+
+			exit(EXIT_FAILURE);
+		}
+
+		/**
+		 * If the worktree is dirty and there's not an
+		 * equivalent entry, create and add a new entry.
+		 */
+		if (index_status && !entry_status) {
+			int ae_err;
+
+			add_entry(&ae_err, repo->stash);
+
+			if (ae_err) {
+				char *log_err_msg, log_err_fmt = "Encountered an error when adding an entry to the stash. Status code %d\n";
+
+				log_err_msg = ALLOC(sizeof(char) * ((strlen(log_err_fmt)) + (sizeof(int) + 1)));
+				sprintf(log_err_msg, log_err_fmt, ae_err);
+
+				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_err_msg);
+
+				FREE(log_err_msg);
+
+				exit(EXIT_FAILURE);
+			}
+
+			/**
+			 * Update stash length.
+			 */
+			repo->stash->length++;
+		}
+
+		/**
+		 * Wait `interval` seconds before continuing the loop.
 		 */
 		nap(interval);
 	}

@@ -24,11 +24,13 @@
  * String utilities
  */
 
+char *base_name(char *path);
 int compare(char *one, char *two);
 char *concat(char *buf, char *str);
 char *copy(char *buf, char *str);
+int index_of(char *element, char *array[], size_t size);
+int in_array(char *element, char *array[], size_t size);
 char *length(char *buf);
-char *base_name(char *path);
 
 /**
  * Filesystem utilities
