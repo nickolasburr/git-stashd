@@ -267,7 +267,7 @@ int main (int argc, char **argv) {
 			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
 			FREE(log_msg);
 
-			exit(EXIT_FAILURE);
+			// exit(EXIT_FAILURE);
 		}
 
 		/**

@@ -119,7 +119,7 @@ char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
 }
 
 /**
- * Set existing entries on repo->stash->entries struct.
+ * Add new entry to stash.
  */
 void add_entry (int *error, struct stash *s) {
 	FILE *fp;
