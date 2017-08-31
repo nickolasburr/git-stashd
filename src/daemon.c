@@ -31,7 +31,6 @@ void fork_proc () {
 	}
 
 	signal(SIGHUP, SIG_IGN);
-	signal(SIGCHLD, SIG_IGN);
 
 	switch (fork()) {
 		case 0:
