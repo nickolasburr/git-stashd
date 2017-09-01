@@ -276,7 +276,7 @@ int main (int argc, char **argv) {
 		     /**
 			  * @todo: Move this to a macro.
 			  */
-		     *log_info_fmt = "Checked worktree @ %s",
+		     *log_info_fmt = "Checking worktree @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
 
 		/**
@@ -340,6 +340,7 @@ int main (int argc, char **argv) {
 			 */
 			if (!has_entry) {
 				int ae_err;
+				char *ae_info_msg, *ae_info_fmt = "Worktree is dirty, no equivalent entry could be located. Adding a new entry";
 
 				add_entry(&ae_err, repo->stash);
 
@@ -355,12 +356,18 @@ int main (int argc, char **argv) {
 					exit(EXIT_FAILURE);
 				}
 
+				ae_info_msg = ALLOC(sizeof(char) * (strlen(ae_info_fmt) + NULL_BYTE));
+				sprintf(ae_info_msg, ae_info_fmt);
+
+				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ae_info_msg);
+				FREE(ae_info_msg);
+
 				/**
 				 * Update stash length.
 				 */
 				repo->stash->length++;
 			} else {
-				char *ee_err_msg, *ee_err_fmt = "Worktree is dirty, but equivalent entry exists at stash@{%d}";
+				char *ee_err_msg, *ee_err_fmt = "Worktree is dirty, equivalent entry exists at stash@{%d}";
 
 				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
@@ -372,6 +379,7 @@ int main (int argc, char **argv) {
 			char *clean_index_msg, *clean_index_fmt = "Worktree is clean, no action taken";
 
 			clean_index_msg = ALLOC(sizeof(char) * (strlen(clean_index_fmt) + NULL_BYTE));
+			sprintf(clean_index_msg, clean_index_fmt);
 
 			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, clean_index_msg);
 			FREE(clean_index_msg);
