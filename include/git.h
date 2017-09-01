@@ -40,7 +40,7 @@ struct repository {
 	struct stash *stash;
 };
 
-int is_repo(char *path);
+int is_repo(const char *path);
 int is_worktree_dirty(int *error, struct repository *r);
 
 void add_entry(int *error, struct stash *s);

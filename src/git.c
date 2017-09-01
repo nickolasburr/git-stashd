@@ -353,7 +353,7 @@ int is_worktree_dirty (int *error, struct repository *r) {
 /**
  * Determine if a pathname points to a directory with a Git repository.
  */
-int is_repo (char *path) {
+int is_repo (const char *path) {
 	int is_valid;
 	char *check_repo_cmd;
 	/**
