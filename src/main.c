@@ -276,7 +276,7 @@ int main (int argc, char **argv) {
 		     /**
 			  * @todo: Move this to a macro.
 			  */
-		     *log_info_fmt = "Checking worktree @ %s",
+		     *log_info_fmt = "Checking worktree %s @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
 
 		/**
@@ -284,8 +284,8 @@ int main (int argc, char **argv) {
 		 */
 		get_timestamp(ts_buf);
 
-		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
-		sprintf(log_info_msg, log_info_fmt, ts_buf);
+		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(repo->path) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+		sprintf(log_info_msg, log_info_fmt, repo->path, ts_buf);
 
 		/**
 		 * Write informational message to log file.
