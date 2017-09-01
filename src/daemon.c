@@ -95,7 +95,7 @@ void write_log_file (int *error, char *filename, char *filemode, char *message) 
 	if (fp_err) {
 		*error = 1;
 	} else {
-		fprintf(fp, "%zu: %s\n", pid, message);
+		fprintf(fp, "[%zu] %s\n", pid, message);
 	}
 
 	fclose(fp);
