@@ -10,11 +10,13 @@ int main (int argc, char **argv) {
 	int index,
 	    fp_err,
 	    init_err,
+	    arg_index,
 	    opt_index,
 	    daemonize,
 	    entry_status,
 	    index_status,
-	    interval;
+	    interval,
+	    last_index;
 	char path_buf[PATH_MAX],
 	     s_interval[4],
 	     *cwd,
@@ -23,6 +25,11 @@ int main (int argc, char **argv) {
 	struct repository *repo;
 	struct stash *stash;
 	struct sigaction action;
+
+	/**
+	 * Get the index of the last element in `argv`.
+	 */
+	last_index = (argc - 1);
 
 	/**
 	 * Daemonize by default.
@@ -58,7 +65,13 @@ int main (int argc, char **argv) {
 		          ? index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
 		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
 
-		log_file = argv[(opt_index + 1)];
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "Missing argument for --log-file\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		log_file = argv[arg_index];
 	} else {
 		log_file = GIT_STASHD_LOG_FILE;
 	}
@@ -73,15 +86,19 @@ int main (int argc, char **argv) {
 		          ? index_of(GIT_STASHD_OPT_INTERVAL_L, argv, argc)
 		          : index_of(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
 
-		copy(s_interval, argv[(opt_index + 1)]);
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "Missing argument for --interval\n");
 
-		printf("main -> s_interval -> %s\n", s_interval);
+			exit(EXIT_FAILURE);
+		}
+
+		copy(s_interval, argv[arg_index]);
 
 		/**
 		 * Verify `--interval` option argument is a valid number.
 		 */
 		if (!is_numeric(s_interval)) {
-			fprintf(stderr, "Interval given via --interval is not a valid number!\n");
+			fprintf(stderr, "Invalid argument %s for --interval. Argument must be an integer.\n", s_interval);
 
 			exit(EXIT_FAILURE);
 		}
@@ -102,7 +119,29 @@ int main (int argc, char **argv) {
 		          ? index_of(GIT_STASHD_OPT_PATH_L, argv, argc)
 		          : index_of(GIT_STASHD_OPT_PATH_S, argv, argc);
 
-		path = realpath(argv[(opt_index + 1)], path_buf);
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "Missing argument for --path\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		/**
+		 * To prevent `realpath` from segfaulting when an invalid or malformed
+		 * pathname is given, verify `argv[arg_index]` is a valid directory.
+		 */
+		if (!is_dir(argv[arg_index])) {
+			fprintf(stderr, "Invalid path %s for --path\n", argv[arg_index]);
+
+			exit(EXIT_FAILURE);
+		}
+
+		path = realpath(argv[arg_index], path_buf);
+
+		if (is_null(path)) {
+			fprintf(stderr, "--path: Unable to access %s\n");
+
+			exit(EXIT_FAILURE);
+		}
 	} else {
 		/**
 		 * Since `--path` wasn't given, attempt
@@ -111,7 +150,7 @@ int main (int argc, char **argv) {
 		path = getcwd(path_buf, PATH_MAX);
 
 		if (is_null(path)) {
-			printf("Unable to get the current working directory!\n");
+			fprintf(stderr, "--path: Unable to get current working directory\n");
 
 			exit(EXIT_FAILURE);
 		}
@@ -140,32 +179,23 @@ int main (int argc, char **argv) {
 		 * Exit failure, if a log file couldn't be created.
 		 */
 		if (fp_err) {
-			fprintf(stderr, "Unable to create %s in %s\n", log_file);
+			fprintf(stderr, "Unable to create log file %s in %s\n", log_file, GIT_STASHD_LOG_DIR);
 
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	/**
-	 * Validate path is an existing directory within reach.
-	 */
-	if (!is_dir(path)) {
-		printf("%s is not a directory!\n", path);
-
-		exit(EXIT_FAILURE);
-	}
-
-	/**
-	 * And that it's also a Git repository.
+	 * Verify `path` is a Git repository.
 	 */
 	if (!is_repo(path)) {
-		printf("%s is not a Git repository!\n", path);
+		fprintf(stderr, "%s is not a Git repository\n", path);
 
 		exit(EXIT_FAILURE);
 	}
 
 	/**
-	 * Daemonize if the user requested it.
+	 * Daemonize, unless user explicitly gave --foreground option.
 	 */
 	if (daemonize) {
 		fork_proc();
@@ -241,12 +271,12 @@ int main (int argc, char **argv) {
 	 */
 
 	while (1) {
-		int sd_err, wt_err;
+		int ds_err, wt_err, has_entry;
 		char *log_info_msg,
 		     /**
 			  * @todo: Move this to a macro.
 			  */
-		     *log_info_fmt = "git-stashd: Last check ran @ %s",
+		     *log_info_fmt = "Checked worktree @ %s",
 		     ts_buf[GIT_STASHD_TMS_LENGTH_MAX];
 
 		/**
@@ -261,7 +291,6 @@ int main (int argc, char **argv) {
 		 * Write informational message to log file.
 		 */
 		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_info_msg);
-
 		FREE(log_info_msg);
 
 		/**
@@ -270,13 +299,12 @@ int main (int argc, char **argv) {
 		index_status = is_worktree_dirty(&wt_err, repo);
 
 		if (wt_err) {
-			char *wt_err_msg, wt_err_fmt = "Encountered an error when checking the index status. Status code %d\n";
+			char *wt_err_msg, wt_err_fmt = "Encountered an error when checking the index status. Status code %d";
 
 			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt)) + (sizeof(int) + 1)));
 			sprintf(wt_err_msg, wt_err_fmt, wt_err);
 
 			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, wt_err_msg);
-
 			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -286,47 +314,67 @@ int main (int argc, char **argv) {
 		 * Check the stash for an existing entry
 		 * matching the current worktree diff.
 		 */
-		entry_status = has_coequal_entry(&sd_err, repo->stash);
+		entry_status = has_coequal_entry(&ds_err, repo->stash);
 
-		if (sd_err) {
-			char *sd_err_msg, sd_err_fmt = "Encountered an error when searching for a matching entry. Status code %d\n";
+		if (ds_err) {
+			char *ds_err_msg, ds_err_fmt = "Encountered an error when searching for a matching entry. Status code %d";
 
-			sd_err_msg = ALLOC(sizeof(char) * ((strlen(sd_err_fmt)) + (sizeof(int) + 1)));
-			sprintf(sd_err_msg, sd_err_fmt, sd_err);
+			ds_err_msg = ALLOC(sizeof(char) * ((strlen(ds_err_fmt)) + (sizeof(int) + 1)));
+			sprintf(ds_err_msg, ds_err_fmt, ds_err);
 
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, sd_err_msg);
-
-			FREE(sd_err_msg);
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ds_err_msg);
+			FREE(ds_err_msg);
 
 			exit(EXIT_FAILURE);
 		}
 
+		has_entry = (entry_status != -1);
+
 		/**
-		 * If the worktree is dirty and there's not an
-		 * equivalent entry, create and add a new entry.
+		 * If the worktree is dirty.
 		 */
-		if (index_status && !entry_status) {
-			int ae_err;
-
-			add_entry(&ae_err, repo->stash);
-
-			if (ae_err) {
-				char *log_err_msg, log_err_fmt = "Encountered an error when adding an entry to the stash. Status code %d\n";
-
-				log_err_msg = ALLOC(sizeof(char) * ((strlen(log_err_fmt)) + (sizeof(int) + 1)));
-				sprintf(log_err_msg, log_err_fmt, ae_err);
-
-				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_err_msg);
-
-				FREE(log_err_msg);
-
-				exit(EXIT_FAILURE);
-			}
-
+		if (index_status) {
 			/**
-			 * Update stash length.
+			 * If there's no equivalent stash entry,
+			 * create an entry and add it to the stash.
 			 */
-			repo->stash->length++;
+			if (!has_entry) {
+				int ae_err;
+
+				add_entry(&ae_err, repo->stash);
+
+				if (ae_err) {
+					char *ae_err_msg, *ae_err_fmt = "Encountered an error when adding an entry to the stash";
+
+					ae_err_msg = ALLOC(sizeof(char) * (strlen(ae_err_fmt) + NULL_BYTE));
+					sprintf(ae_err_msg, ae_err_fmt);
+
+					write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ae_err_msg);
+					FREE(ae_err_msg);
+
+					exit(EXIT_FAILURE);
+				}
+
+				/**
+				 * Update stash length.
+				 */
+				repo->stash->length++;
+			} else {
+				char *ee_err_msg, *ee_err_fmt = "Worktree is dirty, but equivalent entry exists at stash@{%d}";
+
+				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
+				sprintf(ee_err_msg, ee_err_fmt, entry_status);
+
+				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ee_err_msg);
+				FREE(ee_err_msg);
+			}
+		} else {
+			char *clean_index_msg, *clean_index_fmt = "Worktree is clean, no action taken";
+
+			clean_index_msg = ALLOC(sizeof(char) * (strlen(clean_index_fmt) + NULL_BYTE));
+
+			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, clean_index_msg);
+			FREE(clean_index_msg);
 		}
 
 		/**
