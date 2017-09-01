@@ -6,14 +6,19 @@
 
 #include "git.h"
 
+/**
+ * Check if the stash has an entry with an equivalent diff of the worktree.
+ */
 int has_coequal_entry (int *error, struct stash *s) {
-	int index, coequal_status;
+	int index;
 	static const char *diff_stash_fmt = "/usr/bin/git -C %s diff --quiet --exit-code stash@{%d}";
-	char *diff_stash_cmd;
 
 	*error = 0;
 
 	for (index = 0; index < s->length; index++) {
+		int coequal_status;
+		char *diff_stash_cmd;
+
 		diff_stash_cmd = ALLOC(sizeof(char) * ((strlen(diff_stash_fmt) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (sizeof(int) + 1)));
 		sprintf(diff_stash_cmd, diff_stash_fmt, s->repo->path, index);
 
@@ -28,14 +33,14 @@ int has_coequal_entry (int *error, struct stash *s) {
 		FREE(diff_stash_cmd);
 
 		/**
-		 * If there is a matching entry, return 1.
+		 * If there is a matching entry, return its index.
 		 */
 		if (!coequal_status) {
-			return 1;
+			return index;
 		}
 	}
 
-	return 0;
+	return -1;
 }
 
 char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
@@ -214,17 +219,6 @@ void add_entry (int *error, struct stash *s) {
 	 * @todo: Use a better solution than system.
 	 */
 	entry_status = system(store_cmd);
-
-	/**
-	 * @debug
-	 */
-	uid_t euid = geteuid();
-	int test_err;
-	char *log_fmt = "geteuid -> %d, exit status is %d\n";
-	char *log_msg = ALLOC(sizeof(char) * ((strlen(log_fmt) + NULL_BYTE) + (sizeof(int) + 2)));
-	sprintf(log_msg, log_fmt, (int) euid, entry_status);
-
-	write_log_file(&test_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_msg);
 
 	/**
 	 * If it was a non-zero exit, we can infer an error was encountered.
