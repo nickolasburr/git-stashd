@@ -299,7 +299,7 @@ int main (int argc, char **argv) {
 		index_status = is_worktree_dirty(&wt_err, repo);
 
 		if (wt_err) {
-			char *wt_err_msg, wt_err_fmt = "Encountered an error when checking the index status. Status code %d";
+			char *wt_err_msg, wt_err_fmt = "--> Encountered an error when checking the index status. Status code %d";
 
 			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt)) + (sizeof(int) + 1)));
 			sprintf(wt_err_msg, wt_err_fmt, wt_err);
@@ -317,10 +317,10 @@ int main (int argc, char **argv) {
 		entry_status = has_coequal_entry(&ds_err, repo->stash);
 
 		if (ds_err) {
-			char *ds_err_msg, ds_err_fmt = "Encountered an error when searching for a matching entry. Status code %d";
+			char *ds_err_msg, ds_err_fmt = "--> Error encountered when searching for equivalent entry";
 
-			ds_err_msg = ALLOC(sizeof(char) * ((strlen(ds_err_fmt)) + (sizeof(int) + 1)));
-			sprintf(ds_err_msg, ds_err_fmt, ds_err);
+			ds_err_msg = ALLOC(sizeof(char) * (strlen(ds_err_fmt)));
+			sprintf(ds_err_msg, ds_err_fmt);
 
 			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ds_err_msg);
 			FREE(ds_err_msg);
@@ -340,12 +340,12 @@ int main (int argc, char **argv) {
 			 */
 			if (!has_entry) {
 				int ae_err;
-				char *ae_info_msg, *ae_info_fmt = "Worktree is dirty, no equivalent entry could be located. Adding a new entry";
+				char *ae_info_msg, *ae_info_fmt = "--> Worktree is dirty, no equivalent entry. Adding new entry";
 
 				add_entry(&ae_err, repo->stash);
 
 				if (ae_err) {
-					char *ae_err_msg, *ae_err_fmt = "Encountered an error when adding an entry to the stash";
+					char *ae_err_msg, *ae_err_fmt = "--> Error encountered when adding entry to stash";
 
 					ae_err_msg = ALLOC(sizeof(char) * (strlen(ae_err_fmt) + NULL_BYTE));
 					sprintf(ae_err_msg, ae_err_fmt);
@@ -367,7 +367,7 @@ int main (int argc, char **argv) {
 				 */
 				repo->stash->length++;
 			} else {
-				char *ee_err_msg, *ee_err_fmt = "Worktree is dirty, equivalent entry exists at stash@{%d}";
+				char *ee_err_msg, *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry";
 
 				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
@@ -376,7 +376,7 @@ int main (int argc, char **argv) {
 				FREE(ee_err_msg);
 			}
 		} else {
-			char *clean_index_msg, *clean_index_fmt = "Worktree is clean, no action taken";
+			char *clean_index_msg, *clean_index_fmt = "--> Worktree is clean, no action taken";
 
 			clean_index_msg = ALLOC(sizeof(char) * (strlen(clean_index_fmt) + NULL_BYTE));
 			sprintf(clean_index_msg, clean_index_fmt);
