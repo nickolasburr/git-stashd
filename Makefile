@@ -4,7 +4,11 @@
 
 CC      = colorgcc
 TARGET  = git-stashd
-PATH    = $(shell printenv PATH)
+INSTALL = /usr/bin/install -c
+
+prefix = /usr/local
+bindir = $(prefix)/bin
+binprefix =
 
 ARFLAGS = rcs
 RM      = rm
@@ -18,9 +22,9 @@ CSFILES = $(wildcard $(SOURCES)/*.c)
 OBFILES = $(patsubst %.c,%.o,$(CSFILES))
 
 CFLAGS  = -ggdb -I$(INCLUDE) -I$(SOURCES) -Wall -Wextra
-LDFLAGS=
+LDFLAGS =
 
-.PHONY: all build clean
+.PHONY: all clean install uninstall
 
 all: $(TARGET)
 
@@ -28,4 +32,11 @@ $(TARGET): $(CSFILES)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	$(RM) $(RMFLAGS) $(OBJECTS)/*.o $(SOURCES)/*.o $(TARGET) $(TARGET).log $(TARGET).dSYM
+	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).*
+
+install: all
+	$(INSTALL) $(TARGET) $(bindir)/$(TARGET)
+	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).*
+
+uninstall:
+	$(RM) $(bindir)/$(TARGET)
