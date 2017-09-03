@@ -24,12 +24,15 @@ OBFILES = $(patsubst %.c,%.o,$(CSFILES))
 CFLAGS  = -ggdb -I$(INCLUDE) -I$(SOURCES) -Wall -Wextra
 LDFLAGS =
 
-.PHONY: all clean install uninstall
+.PHONY: all clean deps install uninstall
 
-all: $(TARGET)
+all: build $(TARGET)
 
 $(TARGET): $(CSFILES)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+build:
+	./build.sh
 
 clean:
 	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).*
