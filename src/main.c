@@ -27,6 +27,20 @@ int main (int argc, char **argv) {
 	struct sigaction action;
 
 	/**
+	 * Initialize libgit2
+	 */
+	 git_libgit2_init();
+
+	int error;
+	git_repository *repop = NULL;
+
+	error = git_repository_open(&repop, "/var/git/repositories/nickolasburr/git-follow");
+
+	printf("error -> %d\n", error);
+
+	git_stash_foreach(repop, show_stash_entries, NULL);
+
+	/**
 	 * Get the index of the last element in `argv`.
 	 */
 	last_index = (argc - 1);

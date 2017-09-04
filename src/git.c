@@ -6,6 +6,13 @@
 
 #include "git.h"
 
+git_stash_cb *show_stash_entries (size_t index, const char *message, const git_oid *stash_id, void *payload) {
+	printf("show_stash_entries -> index    -> %d\n", (int) index);
+	printf("show_stash_entries -> message  -> %s\n", message);
+	printf("show_stash_entries -> stash_id -> %d\n", stash_id);
+	return 0;
+}
+
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */

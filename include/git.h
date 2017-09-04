@@ -12,6 +12,9 @@
 #include "mem.h"
 #include "timestamp.h"
 #include "utils.h"
+#include "git2/checkout.h"
+#include "git2/oid.h"
+#include "git2/stash.h"
 
 #define GIT_STASHD_ENTRY_LINE_MAX 1024
 #define GIT_STASHD_ENT_LENGTH_MAX 50
@@ -50,5 +53,7 @@ void init_stash(int *error, struct repository *r);
 char *get_current_branch(int *error, struct repository *r, char *ref_buf);
 char *get_msg_by_index(int *error, struct stash *s, char *msg_buf, int index);
 char *get_sha_by_index(int *error, struct stash *s, char *sha_buf, int index);
+
+git_stash_cb *show_stash_entries(size_t index, const char *message, const git_oid *stash_id, void *payload);
 
 #endif /* GIT_STASHD_GIT_H */

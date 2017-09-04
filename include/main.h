@@ -16,5 +16,7 @@
 #include "mem.h"
 #include "signals.h"
 #include "utils.h"
+#include "git2/types.h"
+#include "git2/stash.h"
 
 #endif /* GIT_STASHD_MAIN_H */
