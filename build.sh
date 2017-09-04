@@ -10,10 +10,10 @@ LG2_REPO="https://github.com/libgit2/libgit2.git"
 LG2_SHA="15e119375018fba121cf58e02a9f17fe22df0df8"
 
 if test ! -d "$LG2_DIR"; then
-	git -C "$LIB_DIR" clone "$LG2_REPO"
+	git -C "$LIB_DIR" clone --quiet "$LG2_REPO"
 fi
 
-cd $LG2_DIR && git checkout "$LG2_SHA"
+cd $LG2_DIR && git checkout --quiet "$LG2_SHA"
 
 if test ! -d $LG2_BUILD_DIR; then
 	mkdir -p $LG2_BUILD_DIR
@@ -24,6 +24,8 @@ cd $LG2_BUILD_DIR &&
 cmake -DTHREADSAFE=ON                     \
       -DBUILD_CLAR=OFF                    \
       -DBUILD_SHARED_LIBS=OFF             \
+      -DUSE_SSH=OFF                       \
+      -DCURL=OFF                          \
       -DCMAKE_C_FLAGS=-fPIC               \
       -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
       -DCMAKE_INSTALL_PREFIX="$BUILD_DIR" \

@@ -21,21 +21,25 @@ OBJECTS = build
 CSFILES = $(wildcard $(SOURCES)/*.c)
 OBFILES = $(patsubst %.c,%.o,$(CSFILES))
 
-CFLAGS  = -ggdb -I$(INCLUDE) -I$(SOURCES) -Wall -Wextra
-LDFLAGS =
+LG2_DIR = lib/libgit2
+LG2_ARC = $(LG2_DIR)/build/libgit2.a
+LG2_INC = $(LG2_DIR)/include
 
-.PHONY: all clean deps install uninstall
+CFLAGS  = -ggdb -I$(INCLUDE) -I$(LG2_INC) -Wall -Wextra
+LDFLAGS = -pthread -lssl -lcrypto -lz
+
+.PHONY: all build clean install uninstall
 
 all: build $(TARGET)
-
-$(TARGET): $(CSFILES)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 build:
 	./build.sh
 
+$(TARGET): $(CSFILES)
+	$(CC) $(CFLAGS) -o $@ $^ $(LG2_ARC) $(LDFLAGS)
+
 clean:
-	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).*
+	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).* $(LG2_DIR)
 
 install: all
 	$(INSTALL) $(TARGET) $(bindir)/$(TARGET)
