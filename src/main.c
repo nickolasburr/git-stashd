@@ -29,6 +29,7 @@ int main (int argc, char **argv) {
 	 */
 	git_repository *repo;
 	struct git_stashd_stash *stash;
+	struct git_stashd_repository *stash_repo;
 	struct sigaction action;
 
 	/**
@@ -225,7 +226,7 @@ int main (int argc, char **argv) {
 	git_stash_foreach(repo, init_setup, &stash_length);
 
 	stash = ALLOC(sizeof(*stash));
-	stash->repository = ALLOC(sizeof(struct git_stashd_repository *));
+	stash->repository = ALLOC(sizeof(*stash_repo));
 	stash->length = (size_t) stash_length;
 
 	copy(stash->repository->path, path);
@@ -296,10 +297,10 @@ int main (int argc, char **argv) {
 		index_status = is_worktree_dirty(&wt_err, path);
 
 		if (wt_err) {
-			char *wt_err_msg, wt_err_fmt = "--> Encountered an error when checking the index status. Status code %d";
+			char *wt_err_msg, wt_err_fmt = "--> Encountered an error when checking the index status.";
 
-			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt)) + (sizeof(int) + 1)));
-			sprintf(wt_err_msg, wt_err_fmt, wt_err);
+			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt) + NULL_BYTE)));
+			sprintf(wt_err_msg, wt_err_fmt);
 
 			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, wt_err_msg);
 			FREE(wt_err_msg);
@@ -314,7 +315,7 @@ int main (int argc, char **argv) {
 		entry_status = has_coequal_entry(&ds_err, path, stash);
 
 		if (ds_err) {
-			char *ds_err_msg, ds_err_fmt = "--> Error encountered when searching for equivalent entry";
+			char *ds_err_msg, ds_err_fmt = "--> Error encountered when searching for equivalent entry.";
 
 			ds_err_msg = ALLOC(sizeof(char) * (strlen(ds_err_fmt)));
 			sprintf(ds_err_msg, ds_err_fmt);
@@ -337,12 +338,12 @@ int main (int argc, char **argv) {
 			 */
 			if (!has_entry) {
 				int ae_err;
-				char *ae_info_msg, *ae_info_fmt = "--> Worktree is dirty, no equivalent entry. Adding new entry";
+				char *ae_info_msg, *ae_info_fmt = "--> Worktree is dirty, no equivalent entry. Adding new entry.";
 
 				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
-					char *ae_err_msg, *ae_err_fmt = "--> Error encountered when adding entry to stash";
+					char *ae_err_msg, *ae_err_fmt = "--> Error encountered when adding entry to stash.";
 
 					ae_err_msg = ALLOC(sizeof(char) * (strlen(ae_err_fmt) + NULL_BYTE));
 					sprintf(ae_err_msg, ae_err_fmt);
@@ -353,7 +354,7 @@ int main (int argc, char **argv) {
 					exit(EXIT_FAILURE);
 				}
 
-				ae_info_msg = ALLOC(sizeof(char) * (strlen(ae_info_fmt) + NULL_BYTE));
+				ae_info_msg = ALLOC(sizeof(char) * ((strlen(ae_info_fmt) + NULL_BYTE)));
 				sprintf(ae_info_msg, ae_info_fmt);
 
 				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ae_info_msg);
@@ -364,7 +365,7 @@ int main (int argc, char **argv) {
 				 */
 				stash->length++;
 			} else {
-				char *ee_err_msg, *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry";
+				char *ee_err_msg, *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
 
 				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
@@ -373,7 +374,7 @@ int main (int argc, char **argv) {
 				FREE(ee_err_msg);
 			}
 		} else {
-			char *clean_index_msg, *clean_index_fmt = "--> Worktree is clean, no action taken";
+			char *clean_index_msg, *clean_index_fmt = "--> Worktree is clean, no action taken.";
 
 			clean_index_msg = ALLOC(sizeof(char) * (strlen(clean_index_fmt) + NULL_BYTE));
 			sprintf(clean_index_msg, clean_index_fmt);
