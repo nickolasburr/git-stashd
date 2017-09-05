@@ -7,10 +7,9 @@
 #include "error.h"
 
 /**
- * Exit failure, with error message, file, and line number.
+ * A more expressive way of determining if an
+ * error was encountered from a return value.
  */
-void die (char *message, char *file, int line) {
-	fprintf(stderr, "ERROR: %s, caught in %s on line %d", message, file, line);
-
-	exit(EXIT_FAILURE);
+int is_error (int value) {
+	return (value == -1);
 }

@@ -12,6 +12,9 @@
 #include "mem.h"
 #include "timestamp.h"
 #include "utils.h"
+#include "git2/checkout.h"
+#include "git2/oid.h"
+#include "git2/stash.h"
 
 #define GIT_STASHD_ENTRY_LINE_MAX 1024
 #define GIT_STASHD_ENT_LENGTH_MAX 50
@@ -20,35 +23,36 @@
 #define GIT_STASHD_SHA_LENGTH_MAX 42
 #define GIT_STASHD_TMS_LENGTH_MAX 18
 
-struct repository;
-struct stash;
-struct entry {
-	int index;
+struct git_stashd_entry;
+struct git_stashd_stash;
+struct git_stashd_repository;
+
+struct git_stashd_entry {
+	size_t index;
 	char hash[GIT_STASHD_SHA_LENGTH_MAX];
 	char message[GIT_STASHD_MSG_LENGTH_MAX];
-	struct stash *stash;
+	struct git_stashd_stash *stash;
 };
 
-struct stash {
-	int length;
-	struct entry *entries[GIT_STASHD_ENT_LENGTH_MAX];
-	struct repository *repo;
+struct git_stashd_stash {
+	size_t length;
+	struct git_stashd_entry *entries[GIT_STASHD_ENT_LENGTH_MAX];
+	struct git_stashd_repository *repository;
 };
 
-struct repository {
+struct git_stashd_repository {
 	char path[PATH_MAX];
-	struct stash *stash;
+	struct git_stashd_stash *stash;
 };
 
-int is_repo(const char *path);
-int is_worktree_dirty(int *error, struct repository *r);
+void add_stash_entry(int *error, const char *path, struct git_stashd_stash *s);
+int has_coequal_entry(int *error, const char *path, struct git_stashd_stash *s);
+int is_worktree_dirty(int *error, const char *path);
 
-void add_entry(int *error, struct stash *s);
-int has_coequal_entry(int *error, struct stash *s);
-void init_stash(int *error, struct repository *r);
+git_stash_cb *init_setup(size_t index, const char *message, const git_oid *stash_id, void *payload);
+git_stash_cb *init_stash(size_t index, const char *message, const git_oid *stash_id, void *payload);
 
-char *get_current_branch(int *error, struct repository *r, char *ref_buf);
-char *get_msg_by_index(int *error, struct stash *s, char *msg_buf, int index);
-char *get_sha_by_index(int *error, struct stash *s, char *sha_buf, int index);
+char *get_current_branch(int *error, const char *path, char *ref_buf);
+char *get_sha_by_index(int *error, const char *path, char *sha_buf, int index);
 
 #endif /* GIT_STASHD_GIT_H */

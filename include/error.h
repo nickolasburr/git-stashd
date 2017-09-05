@@ -9,6 +9,6 @@
 
 #include "common.h"
 
-void die(char *error, char *file, int line);
+int is_error(int);
 
 #endif /* GIT_STASHD_ERROR_H */
