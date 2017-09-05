@@ -26,7 +26,7 @@ LG2_ARC = $(LG2_DIR)/build/libgit2.a
 LG2_INC = $(LG2_DIR)/include
 
 CFLAGS  = -ggdb -I$(INCLUDE) -I$(LG2_INC) -Wall -Wextra
-LDFLAGS = -pthread -lssl -lcrypto -lz
+LDFLAGS = -pthread -lssl -lcrypto -lz -liconv -framework CoreFoundation -framework Security
 
 .PHONY: all build clean install uninstall
 
