@@ -6,17 +6,10 @@
 
 #include "git.h"
 
-git_stash_cb *show_stash_entries (size_t index, const char *message, const git_oid *stash_id, void *payload) {
-	printf("show_stash_entries -> index    -> %d\n", (int) index);
-	printf("show_stash_entries -> message  -> %s\n", message);
-	printf("show_stash_entries -> stash_id -> %d\n", stash_id);
-	return 0;
-}
-
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */
-int has_coequal_entry (int *error, struct stash *s) {
+int has_coequal_entry (int *error, const char *path, struct git_stashd_stash *s) {
 	int index;
 	static const char *diff_stash_fmt = "/usr/bin/git -C %s diff --quiet --exit-code stash@{%d}";
 
@@ -26,8 +19,8 @@ int has_coequal_entry (int *error, struct stash *s) {
 		int coequal_status;
 		char *diff_stash_cmd;
 
-		diff_stash_cmd = ALLOC(sizeof(char) * ((strlen(diff_stash_fmt) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (sizeof(int) + 1)));
-		sprintf(diff_stash_cmd, diff_stash_fmt, s->repo->path, index);
+		diff_stash_cmd = ALLOC(sizeof(char) * ((strlen(diff_stash_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (sizeof(int) + 1)));
+		sprintf(diff_stash_cmd, diff_stash_fmt, path, index);
 
 		/**
 		 * Use `git-diff` to check if if the entry
@@ -50,7 +43,7 @@ int has_coequal_entry (int *error, struct stash *s) {
 	return -1;
 }
 
-char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
+char *get_sha_by_index (int *error, const char *path, char *sha_buf, int index) {
 	FILE *fp;
 	int fp_err;
 	static const char *format = "/usr/bin/git -C %s show --no-patch --format='%%H' stash@{%d}";
@@ -64,8 +57,8 @@ char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
 	 * create formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	show_entry_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE)));
-	sprintf(show_entry_cmd, format, s->repo->path, index);
+	show_entry_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+	sprintf(show_entry_cmd, format, path, index);
 
 	fp = open_pipe(&fp_err, show_entry_cmd, "r");
 
@@ -88,48 +81,10 @@ char *get_sha_by_index (int *error, struct stash *s, char *sha_buf, int index) {
 	return sha_buf;
 }
 
-char *get_msg_by_index (int *error, struct stash *s, char *msg_buf, int index) {
-	FILE *fp;
-	int fp_err;
-	static const char *format = "/usr/bin/git -C %s show --no-patch --format='%%s' stash@{%d}";
-	char *show_entry_cmd,
-	     line[GIT_STASHD_MSG_LENGTH_MAX];
-
-	*error = 0;
-
-	/**
-	 * Allocate space for `show_entry_cmd`,
-	 * create formatted command with interpolated
-	 * pathname, and open pipe stream.
-	 */
-	show_entry_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE)));
-	sprintf(show_entry_cmd, format, s->repo->path, index);
-
-	fp = open_pipe(&fp_err, show_entry_cmd, "r");
-
-	if (fp_err) {
-		close_pipe(fp);
-		*error = 1;
-
-		return msg_buf;
-	}
-
-	while (!is_null(fgets(line, GIT_STASHD_MSG_LENGTH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
-
-		copy(msg_buf, line);
-	}
-
-	close_pipe(fp);
-	FREE(show_entry_cmd);
-
-	return msg_buf;
-}
-
 /**
  * Get the name of current branch.
  */
-char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
+char *get_current_branch (int *error, const char *path, char *ref_buf) {
 	FILE *fp;
 	int fp_err;
 	static const char *format = "/usr/bin/git -C %s rev-parse --abbrev-ref HEAD";
@@ -138,8 +93,8 @@ char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
 
 	*error = 0;
 
-	current_branch_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE)));
-	sprintf(current_branch_cmd, format, r->path);
+	current_branch_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+	sprintf(current_branch_cmd, format, path);
 
 	fp = open_pipe(&fp_err, current_branch_cmd, "r");
 
@@ -164,8 +119,10 @@ char *get_current_branch (int *error, struct repository *r, char *ref_buf) {
 
 /**
  * Add new entry to stash.
+ *
+ * @todo: Use libgit2 for creating/applying stash.
  */
-void add_entry (int *error, struct stash *s) {
+void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) {
 	FILE *fp;
 	int entry_status,
 	    fp_err,
@@ -186,7 +143,7 @@ void add_entry (int *error, struct stash *s) {
 	/**
 	 * Get branch, timestamp
 	 */
-	get_current_branch(&ref_error, s->repo, ref_buf);
+	get_current_branch(&ref_error, path, ref_buf);
 	get_timestamp(ts_buf);
 
 	if (ref_error) {
@@ -201,8 +158,8 @@ void add_entry (int *error, struct stash *s) {
 	/**
 	 * Allocate space for `create_cmd`.
 	 */
-	create_cmd = ALLOC(sizeof(char) * ((strlen(cformat) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE)));
-	sprintf(create_cmd, cformat, s->repo->path, entry_msg);
+	create_cmd = ALLOC(sizeof(char) * ((strlen(cformat) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE)));
+	sprintf(create_cmd, cformat, path, entry_msg);
 
 	fp = open_pipe(&fp_err, create_cmd, "r");
 
@@ -219,8 +176,8 @@ void add_entry (int *error, struct stash *s) {
 		copy(sha_buf, line);
 	}
 
-	store_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(s->repo->path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
-	sprintf(store_cmd, sformat, s->repo->path, entry_msg, sha_buf);
+	store_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
+	sprintf(store_cmd, sformat, path, entry_msg, sha_buf);
 
 	/**
 	 * @todo: Use a better solution than system.
@@ -241,70 +198,47 @@ void add_entry (int *error, struct stash *s) {
 }
 
 /**
- * Initialize stash struct (and entries) on repository struct.
+ * Callback function for libgit2 `git_stash_foreach`. Used solely for calculating stash length.
  */
-void init_stash (int *error, struct repository *r) {
-	FILE *fp;
-	int index, fp_err;
-	static const char *format = "/usr/bin/git -C %s stash list --format='%%s'";
-	char *stash_list_cmd,
-	     line[GIT_STASHD_MSG_LENGTH_MAX];
+git_stash_cb *init_setup (size_t index, const char *message, const git_oid *stash_id, void *payload) {
+	/**
+	 * Increment payload int pointer.
+	 */
+	(*(int*) payload)++;
 
-	*error = 0;
+	return 0;
+}
+
+/**
+ * Callback function for libgit2 `git_stash_foreach`. Initialize repository stash.
+ */
+git_stash_cb *init_stash (size_t index, const char *message, const git_oid *stash_id, void *payload) {
+	int sha_err;
+	char sha_buf[GIT_STASHD_SHA_LENGTH_MAX];
 
 	/**
-	 * Allocate space for `stash_list_cmd`,
-	 * create formatted command with interpolated
-	 * pathname, and open pipe stream.
+	 * Retrieve the SHA1 hash for the stash entry.
 	 */
-	stash_list_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(r->path) + NULL_BYTE)));
-	sprintf(stash_list_cmd, format, r->path);
+	get_sha_by_index(&sha_err, ((struct git_stashd_stash *) payload)->repository->path, sha_buf, (int) index);
 
-	fp = open_pipe(&fp_err, stash_list_cmd, "r");
+	if (sha_err) {
+		fprintf(stderr, "Error encountered when calling get_sha_by_index\n");
 
-	if (fp_err) {
-		close_pipe(fp);
-		*error = 1;
-
-		return;
+		exit(EXIT_FAILURE);
 	}
 
-	index = 0;
+	copy(((struct git_stashd_stash *) payload)->entries[index]->hash, sha_buf);
+	copy(((struct git_stashd_stash *) payload)->entries[index]->message, message);
 
-	while (!is_null(fgets(line, GIT_STASHD_MSG_LENGTH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
-
-		int msg_error, sha_error;
-		char *sha_buf = ALLOC(sizeof(char) * GIT_STASHD_SHA_LENGTH_MAX),
-		     *msg_buf = ALLOC(sizeof(char) * GIT_STASHD_MSG_LENGTH_MAX);
-
-		get_msg_by_index(&msg_error, r->stash, msg_buf, index);
-		get_sha_by_index(&sha_error, r->stash, sha_buf, index);
-
-		if (!msg_error && !sha_error) {
-			copy(r->stash->entries[index]->hash, sha_buf);
-			copy(r->stash->entries[index]->message, msg_buf);
-		}
-
-		FREE(sha_buf);
-		FREE(msg_buf);
-
-		index++;
-	}
-
-	/**
-	 * Length of stash entries.
-	 */
-	r->stash->length = index;
-
-	close_pipe(fp);
-	FREE(stash_list_cmd);
+	return 0;
 }
 
 /**
  * Check if the worktree is dirty.
+ *
+ * @todo: Rebuild this using libgit2 `git_diff_index_to_workdir`.
  */
-int is_worktree_dirty (int *error, struct repository *r) {
+int is_worktree_dirty (int *error, const char *path) {
 	int index_status;
 	char *diff_index_cmd, *update_index_cmd;
 	/**
@@ -319,17 +253,17 @@ int is_worktree_dirty (int *error, struct repository *r) {
 	 * Allocate space for `diff_index_cmd` and `update_index_cmd`,
 	 * format both strings for use with `system` builtin.
 	 */
-	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + NULL_BYTE) + (strlen(diff_index_format) + NULL_BYTE)));
-	sprintf(diff_index_cmd, diff_index_format, r->path);
+	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(diff_index_format) + NULL_BYTE)));
+	sprintf(diff_index_cmd, diff_index_format, path);
 
-	update_index_cmd = ALLOC(sizeof(char) * ((strlen(r->path) + NULL_BYTE) + (strlen(update_index_format) + NULL_BYTE)));
-	sprintf(update_index_cmd, update_index_format, r->path);
+	update_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(update_index_format) + NULL_BYTE)));
+	sprintf(update_index_cmd, update_index_format, path);
 
 	/**
 	 * Refresh the index before checking state.
 	 * Set error marker if an error occurred.
 	 */
-	if (system(update_index_cmd) == -1) {
+	if (is_error(system(update_index_cmd))) {
 		*error = 1;
 	}
 
@@ -337,7 +271,7 @@ int is_worktree_dirty (int *error, struct repository *r) {
 	 * Get state information via `diff-index`.
 	 * Set error marker if an error occurred.
 	 */
-	if ((index_status = system(diff_index_cmd)) == -1) {
+	if (is_error((index_status = system(diff_index_cmd)))) {
 		*error = 1;
 	}
 
@@ -355,44 +289,4 @@ int is_worktree_dirty (int *error, struct repository *r) {
 	}
 
 	return 0;
-}
-
-/**
- * Determine if a pathname points to a directory with a Git repository.
- */
-int is_repo (const char *path) {
-	int is_valid;
-	char *check_repo_cmd;
-	/**
-	 * @todo: This should be a macro or static extern.
-	 */
-	static const char *format = "/usr/bin/git -C %s rev-parse --git-dir >/dev/null 2>&1";
-
-	/**
-	 * `is_valid` should be well-defined.
-	 */
-	is_valid = 0;
-
-	/**
-	 * Verify `path` is a valid, readable directory.
-	 */
-	if (is_dir(path)) {
-		/**
-		 * Allocate space for `check_repo_cmd`.
-		 */
-		check_repo_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
-
-		/**
-		 * If it was a clean exit, then we'll get a return value
-		 * of 0, and we can infer we're inside a Git repository.
-		 */
-		is_valid = !system(check_repo_cmd);
-
-		/**
-		 * Free space allocated for `check_repo_cmd`.
-		 */
-		FREE(check_repo_cmd);
-	}
-
-	return is_valid;
 }

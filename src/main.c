@@ -16,29 +16,25 @@ int main (int argc, char **argv) {
 	    entry_status,
 	    index_status,
 	    interval,
-	    last_index;
+	    last_index,
+	    stash_length;
 	char path_buf[PATH_MAX],
 	     s_interval[4],
 	     *cwd,
 	     *log_file,
 	     *path;
-	struct repository *repo;
-	struct stash *stash;
+
+	/**
+	 * Set up struct initializers.
+	 */
+	git_repository *repo;
+	struct git_stashd_stash *stash;
 	struct sigaction action;
 
 	/**
 	 * Initialize libgit2
 	 */
-	 git_libgit2_init();
-
-	int error;
-	git_repository *repop = NULL;
-
-	error = git_repository_open(&repop, "/var/git/repositories/nickolasburr/git-follow");
-
-	printf("error -> %d\n", error);
-
-	git_stash_foreach(repop, show_stash_entries, NULL);
+	git_libgit2_init();
 
 	/**
 	 * Get the index of the last element in `argv`.
@@ -80,7 +76,7 @@ int main (int argc, char **argv) {
 		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "Missing argument for --log-file\n");
+			fprintf(stderr, "--log-file: Missing argument\n");
 
 			exit(EXIT_FAILURE);
 		}
@@ -101,7 +97,7 @@ int main (int argc, char **argv) {
 		          : index_of(GIT_STASHD_OPT_INTERVAL_S, argv, argc);
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "Missing argument for --interval\n");
+			fprintf(stderr, "--interval: Missing argument\n");
 
 			exit(EXIT_FAILURE);
 		}
@@ -112,7 +108,7 @@ int main (int argc, char **argv) {
 		 * Verify `--interval` option argument is a valid number.
 		 */
 		if (!is_numeric(s_interval)) {
-			fprintf(stderr, "Invalid argument %s for --interval. Argument must be an integer.\n", s_interval);
+			fprintf(stderr, "--interval: Invalid argument %s. Argument must be an integer.\n", s_interval);
 
 			exit(EXIT_FAILURE);
 		}
@@ -134,7 +130,7 @@ int main (int argc, char **argv) {
 		          : index_of(GIT_STASHD_OPT_PATH_S, argv, argc);
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "Missing argument for --path\n");
+			fprintf(stderr, "--path: Missing pathname argument\n");
 
 			exit(EXIT_FAILURE);
 		}
@@ -144,7 +140,7 @@ int main (int argc, char **argv) {
 		 * pathname is given, verify `argv[arg_index]` is a valid directory.
 		 */
 		if (!is_dir(argv[arg_index])) {
-			fprintf(stderr, "Invalid path %s for --path\n", argv[arg_index]);
+			fprintf(stderr, "--path: Invalid path %s\n", argv[arg_index]);
 
 			exit(EXIT_FAILURE);
 		}
@@ -152,7 +148,7 @@ int main (int argc, char **argv) {
 		path = realpath(argv[arg_index], path_buf);
 
 		if (is_null(path)) {
-			fprintf(stderr, "--path: Unable to access %s\n");
+			fprintf(stderr, "--path: Unable to access %s\n", argv[arg_index]);
 
 			exit(EXIT_FAILURE);
 		}
@@ -200,10 +196,10 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Verify `path` is a Git repository.
+	 * Open Git repository, die if an error was encountered trying to do so.
 	 */
-	if (!is_repo(path)) {
-		fprintf(stderr, "%s is not a Git repository\n", path);
+	if (git_repository_open(&repo, path)) {
+		fprintf(stderr, "Unable to locate repository at %s. Please verify it is a Git repository and you have sufficient permissions.\n", path);
 
 		exit(EXIT_FAILURE);
 	}
@@ -216,46 +212,33 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Initialize struct for storing information
-	 * specific to the Git repository in question.
+	 *
+	 * Start initialization of stash and entries.
+	 *
 	 */
-	repo = ALLOC(sizeof(*repo));
-	repo->stash = ALLOC(sizeof(*stash));
-	repo->stash->repo = &repo;
 
-	copy(repo->path, path);
+	stash_length = 0;
 
-	for (index = 0; index < GIT_STASHD_ENT_LENGTH_MAX; index += 1) {
-		repo->stash->entries[index] = ALLOC(sizeof(struct entry));
+	/**
+	 * Get initial stash length.
+	 */
+	git_stash_foreach(repo, init_setup, &stash_length);
 
-		/**
-		 * Set pointers to repo struct and stash struct.
-		 */
-		repo->stash->entries[index]->stash = repo->stash;
-		repo->stash->entries[index]->stash->repo = repo;
+	stash = ALLOC(sizeof(*stash));
+	stash->repository = ALLOC(sizeof(struct git_stashd_repository *));
+	stash->length = (size_t) stash_length;
+
+	copy(stash->repository->path, path);
+
+	for (index = 0; index < stash->length; index += 1) {
+		stash->entries[index] = ALLOC(sizeof(struct git_stashd_entry));
+		stash->entries[index]->stash = stash;
 	}
 
 	/**
-	 * Initialize stash.
+	 * Initialize stash entries on stash struct.
 	 */
-	init_stash(&init_err, repo);
-
-	/**
-	 * Exit failure, if an error was encountered initializing the stash.
-	 */
-	if (init_err) {
-		/**
-		 * If we're daemonized, write the error to the log file.
-		 * Otherwise, send it to STDERR.
-		 */
-		if (daemonize) {
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, "An error was encountered while trying to retrieve stash entries...\n");
-		} else {
-			fprintf(stderr, "An error was encountered while trying to retrieve stash entries for %s\n", path);
-		}
-
-		exit(EXIT_FAILURE);
-	}
+	git_stash_foreach(repo, init_stash, stash);
 
 	/**
 	 * Setup signal handling.
@@ -264,19 +247,19 @@ int main (int argc, char **argv) {
 	action.sa_flags = SA_RESTART;
 	sigfillset(&action.sa_mask);
 
-	if (sigaction(SIGHUP, &action, NULL) == -1) {
+	if (is_error(sigaction(SIGHUP, &action, NULL))) {
 		perror("Error handling SIGHUP\n");
 	}
 
-	if (sigaction(SIGINT, &action, NULL) == -1) {
+	if (is_error(sigaction(SIGINT, &action, NULL))) {
 		perror("Error handling SIGINT\n");
 	}
 
-	if (sigaction(SIGUSR1, &action, NULL) == -1) {
+	if (is_error(sigaction(SIGUSR1, &action, NULL))) {
 		perror("Error handling SIGUSR1\n");
 	}
 
-	if (sigaction(SIGUSR2, &action, NULL) == -1) {
+	if (is_error(sigaction(SIGUSR2, &action, NULL))) {
 		perror("Error handling SIGUSR2\n");
 	}
 
@@ -298,8 +281,8 @@ int main (int argc, char **argv) {
 		 */
 		get_timestamp(ts_buf);
 
-		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(repo->path) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
-		sprintf(log_info_msg, log_info_fmt, repo->path, ts_buf);
+		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+		sprintf(log_info_msg, log_info_fmt, path, ts_buf);
 
 		/**
 		 * Write informational message to log file.
@@ -310,7 +293,7 @@ int main (int argc, char **argv) {
 		/**
 		 * Get the current index status from the worktree.
 		 */
-		index_status = is_worktree_dirty(&wt_err, repo);
+		index_status = is_worktree_dirty(&wt_err, path);
 
 		if (wt_err) {
 			char *wt_err_msg, wt_err_fmt = "--> Encountered an error when checking the index status. Status code %d";
@@ -328,7 +311,7 @@ int main (int argc, char **argv) {
 		 * Check the stash for an existing entry
 		 * matching the current worktree diff.
 		 */
-		entry_status = has_coequal_entry(&ds_err, repo->stash);
+		entry_status = has_coequal_entry(&ds_err, path, stash);
 
 		if (ds_err) {
 			char *ds_err_msg, ds_err_fmt = "--> Error encountered when searching for equivalent entry";
@@ -342,7 +325,7 @@ int main (int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 
-		has_entry = (entry_status != -1);
+		has_entry = !is_error(entry_status);
 
 		/**
 		 * If the worktree is dirty.
@@ -356,7 +339,7 @@ int main (int argc, char **argv) {
 				int ae_err;
 				char *ae_info_msg, *ae_info_fmt = "--> Worktree is dirty, no equivalent entry. Adding new entry";
 
-				add_entry(&ae_err, repo->stash);
+				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
 					char *ae_err_msg, *ae_err_fmt = "--> Error encountered when adding entry to stash";
@@ -379,7 +362,7 @@ int main (int argc, char **argv) {
 				/**
 				 * Update stash length.
 				 */
-				repo->stash->length++;
+				stash->length++;
 			} else {
 				char *ee_err_msg, *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry";
 
@@ -409,12 +392,14 @@ int main (int argc, char **argv) {
 	 * Clean up before exiting.
 	 */
 
-	for (index = 0; index < GIT_STASHD_ENT_LENGTH_MAX; index += 1) {
-		FREE(repo->stash->entries[index]);
+	for (index = 0; index < stash->length; index += 1) {
+		FREE(stash->entries[index]);
 	}
 
-	FREE(repo->stash);
-	FREE(repo);
+	FREE(stash->repository);
+	FREE(stash);
+
+	git_repository_free(repo);
 
 	return EXIT_SUCCESS;
 }
