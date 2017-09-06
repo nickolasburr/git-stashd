@@ -25,8 +25,14 @@ LG2_DIR = lib/libgit2
 LG2_ARC = $(LG2_DIR)/build/libgit2.a
 LG2_INC = $(LG2_DIR)/include
 
+KERNEL := $(shell sh -c 'uname -s 2>/dev/null || echo unknown')
+
 CFLAGS  = -ggdb -I$(INCLUDE) -I$(LG2_INC) -Wall -Wextra
-LDFLAGS = -pthread -lssl -lcrypto -lz -liconv -framework CoreFoundation -framework Security
+LDFLAGS = -pthread -lssl -lcrypto -lz
+
+ifeq "$(KERNEL)" "Darwin"
+LDFLAGS += -liconv -framework CoreFoundation -framework Security
+endif
 
 .PHONY: all build clean install uninstall
 
