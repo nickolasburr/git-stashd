@@ -50,8 +50,8 @@ void fork_proc () {
 	}
 
 	stdin  = fopen("/dev/null", "r");
-	stdout = fopen("/dev/null", "w+");
-	stderr = fopen("/dev/null", "w+");
+	stdout = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+	stderr = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
 }
 
 /**
