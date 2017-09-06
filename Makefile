@@ -16,7 +16,7 @@ RMFLAGS = -rf
 
 INCLUDE = include
 SOURCES = src
-OBJECTS = build
+TOOLS   = tools
 
 CSFILES = $(wildcard $(SOURCES)/*.c)
 OBFILES = $(patsubst %.c,%.o,$(CSFILES))
@@ -39,7 +39,7 @@ endif
 all: build $(TARGET)
 
 build:
-	./build.sh
+	@cd $(TOOLS) && ./build.sh
 
 $(TARGET): $(CSFILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LG2_ARC) $(LDFLAGS)
@@ -47,9 +47,8 @@ $(TARGET): $(CSFILES)
 clean:
 	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).* $(LG2_DIR)
 
-install: all
-	$(INSTALL) $(TARGET) $(bindir)/$(TARGET)
-	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).*
+install:
+	@cd $(TOOLS) && ./install.sh
 
 uninstall:
 	$(RM) $(bindir)/$(TARGET)

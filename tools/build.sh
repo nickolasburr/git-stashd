@@ -2,8 +2,9 @@
 
 set -ex
 
-BUILD_DIR="$PWD/build"
-LIB_DIR="$PWD/lib"
+PROJ_DIR="$(dirname $PWD)"
+BUILD_DIR="$PROJ_DIR/build"
+LIB_DIR="$PROJ_DIR/lib"
 LG2_DIR="$LIB_DIR/libgit2"
 LG2_BUILD_DIR="$LG2_DIR/build"
 LG2_REPO="https://github.com/libgit2/libgit2.git"
