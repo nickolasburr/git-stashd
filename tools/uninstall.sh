@@ -5,8 +5,8 @@ set -ex
 PREFIX=/usr/local
 BINDIR=$PREFIX/bin
 
-INSTALL=/usr/bin/install
-OPTIONS="-c"
+RM="rm"
+RMFLAGS="-rf"
 TARGET="git-stashd"
 
-eval "$INSTALL $OPTIONS $TARGET $BINDIR/$TARGET"
+eval "$RM $RMFLAGS $BINDIR/$TARGET"

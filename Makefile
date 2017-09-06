@@ -51,4 +51,4 @@ install:
 	@cd $(TOOLS) && ./install.sh
 
 uninstall:
-	$(RM) $(bindir)/$(TARGET)
+	@cd $(TOOLS) && ./uninstall.sh
