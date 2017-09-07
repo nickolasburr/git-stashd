@@ -17,7 +17,6 @@
 #include "error.h"
 
 #define _GNU_SOURCE
-
 #define NULL_BYTE 1
 #define NOT_FOUND -1
 #define ERR_CATCH -2

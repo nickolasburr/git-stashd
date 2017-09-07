@@ -7,21 +7,10 @@
 #include "argv.h"
 
 /**
- * Print formatted usage message to stdout
+ * Print formatted usage message to stdout.
  */
-void pfusage () {
-	unsigned int i, pfindent = 5;
-	const char* const options[GIT_STASHD_OPT_COUNT] = {
-		"--help",
-		"--foreground",
-		"--interval",
-		"--repository-path",
-	};
-	size_t size = (sizeof(options) / sizeof(options[0]));
+void usage (void) {
+	printf("Usage: git-stashd [OPTIONS]\n\nType 'man git-stashd' for details");
 
-	printf("%s\n\nOptions:\n\n", GIT_STASHD_OPT_HELP_M);
-
-	for (i = 0; i < size; i += 1) {
-		printf("%*s %s\n", pfindent, "", options[i]);
-	}
+	exit(EXIT_SUCCESS);
 }

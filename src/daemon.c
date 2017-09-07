@@ -9,7 +9,7 @@
 /**
  * Fork parent process and run in detached daemon mode.
  */
-void fork_proc () {
+void daemonize () {
 	int fd;
 	uid_t euid;
 
@@ -50,53 +50,20 @@ void fork_proc () {
 	}
 
 	stdin  = fopen("/dev/null", "r");
-	stdout = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
-	stderr = fopen(GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE);
+	stdout = fopen("/dev/null", "w+");
+	stderr = fopen("/dev/null", "w+");
 }
 
 /**
- * Create log file.
+ * Send output to syslog for logging.
  */
-void touch_log_file (int *error, char *log_file, char *filemode) {
-	FILE *fp;
-	int fp_err;
-
-	*error = 0;
-
+void write_to_log (const char *name, const char *message, int level) {
 	/**
-	 * Remove trailing slash from path, if present.
-	 * e.g. /var/log/alternate.log/
+	 * Limit logging to certain level.
 	 */
-	if (log_file[strlen(log_file) - 1] == '/') {
-		log_file[strlen(log_file) - 1] = 0;
-	}
+	setlogmask(LOG_UPTO(level));
 
-	fp = get_file(&fp_err, log_file, filemode);
-
-	if (fp_err) {
-		*error = 1;
-	}
-
-	fclose(fp);
-}
-
-/**
- * Write to log file.
- */
-void write_log_file (int *error, char *filename, char *filemode, char *message) {
-	int fp_err;
-	FILE *fp;
-	pid_t pid = getpid();
-
-	*error = 0;
-
-	fp = get_file(&fp_err, filename, filemode);
-
-	if (fp_err) {
-		*error = 1;
-	} else {
-		fprintf(fp, "[%zu] %s\n", pid, message);
-	}
-
-	fclose(fp);
+	openlog(name, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+	syslog(level, message);
+	closelog();
 }
