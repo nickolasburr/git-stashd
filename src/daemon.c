@@ -49,9 +49,9 @@ void daemonize () {
 		close(fd);
 	}
 
-	stdin  = fopen("/dev/null", "r");
-	stdout = fopen("/dev/null", "w+");
-	stderr = fopen("/dev/null", "w+");
+	// stdin  = fopen("/dev/null", "r");
+	stdout = popen("/usr/bin/logger", "w+");
+	stderr = popen("/usr/bin/logger", "w+");
 }
 
 /**
