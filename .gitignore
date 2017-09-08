@@ -1,4 +1,8 @@
+git-stashd
+
 *.a
+*.dSYM
+[ds]trace.txt
 *.o
 *.sw[po]
 
