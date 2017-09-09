@@ -13,25 +13,13 @@
 #define GIT_STASHD_OPT_HELP_M "git stashd [OPTIONS]"
 #define GIT_STASHD_OPT_HELP_L "--help"
 #define GIT_STASHD_OPT_HELP_S "-h"
-
-#define GIT_STASHD_OPT_FOREGROUND_L "--foreground"
-#define GIT_STASHD_OPT_FOREGROUND_S "-F"
-
-#define GIT_STASHD_OPT_LOG_FILE_L "--log-file"
-#define GIT_STASHD_OPT_LOG_FILE_S "-L"
-
 #define GIT_STASHD_OPT_PATH_L "--path"
 #define GIT_STASHD_OPT_PATH_S "-P"
-
+#define GIT_STASHD_OPT_FOREGROUND_L "--foreground"
+#define GIT_STASHD_OPT_FOREGROUND_S "-F"
 #define GIT_STASHD_OPT_INTERVAL_L "--interval"
 #define GIT_STASHD_OPT_INTERVAL_S "-I"
 
-#define GIT_STASHD_OPT_COUNT 5
-
-const char* const options[GIT_STASHD_OPT_COUNT];
-int pfindent;
-size_t size;
-
-void pfusage(void);
+void usage(void);
 
 #endif /* GIT_STASHD_ARGV_H */

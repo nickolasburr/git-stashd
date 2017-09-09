@@ -12,7 +12,7 @@ int main (int argc, char **argv) {
 	    init_err,
 	    arg_index,
 	    opt_index,
-	    daemonize,
+	    daemonized,
 	    entry_status,
 	    index_status,
 	    interval,
@@ -45,16 +45,14 @@ int main (int argc, char **argv) {
 	/**
 	 * Daemonize by default.
 	 */
-	daemonize = 1;
+	daemonized = 1;
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
 	 */
 	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
 	    in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
-		pfusage();
-
-		exit(EXIT_SUCCESS);
+		usage();
 	}
 
 	/**
@@ -63,28 +61,7 @@ int main (int argc, char **argv) {
 	 */
 	if (in_array(GIT_STASHD_OPT_FOREGROUND_L, argv, argc) ||
 	    in_array(GIT_STASHD_OPT_FOREGROUND_S, argv, argc)) {
-		daemonize = 0;
-	}
-
-	/**
-	 * Check if `--log-file` option was given.
-	 */
-	if (in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
-	    in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
-
-		opt_index = (index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
-		          ? index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
-		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
-
-		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--log-file: Missing argument\n");
-
-			exit(EXIT_FAILURE);
-		}
-
-		log_file = argv[arg_index];
-	} else {
-		log_file = GIT_STASHD_LOG_FILE;
+		daemonized = 0;
 	}
 
 	/**
@@ -168,35 +145,6 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 *
-	 * @todo: Add check for --log-file, create log file if it doesn't already exist.
-	 *
-	 */
-
-	if (!is_file(log_file)) {
-		/**
-		 * @todo: Check against the directory containing `--log-file` argument.
-		 * For now, we'll use the default GIT_STASHD_LOG_DIR directory.
-		 */
-		if (!is_writable(GIT_STASHD_LOG_DIR)) {
-			fprintf(stderr, "%s is not writable!\n", GIT_STASHD_LOG_DIR);
-
-			exit(EXIT_FAILURE);
-		}
-
-		touch_log_file(&fp_err, log_file, GIT_STASHD_LOG_MODE);
-
-		/**
-		 * Exit failure, if a log file couldn't be created.
-		 */
-		if (fp_err) {
-			fprintf(stderr, "Unable to create log file %s in %s\n", log_file, GIT_STASHD_LOG_DIR);
-
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	/**
 	 * Open Git repository, die if an error was encountered trying to do so.
 	 */
 	if (git_repository_open(&repo, path)) {
@@ -208,8 +156,8 @@ int main (int argc, char **argv) {
 	/**
 	 * Daemonize, unless user explicitly gave --foreground option.
 	 */
-	if (daemonize) {
-		fork_proc();
+	if (daemonized) {
+		daemonize();
 	}
 
 	/**
@@ -288,7 +236,7 @@ int main (int argc, char **argv) {
 		/**
 		 * Write informational message to log file.
 		 */
-		write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, log_info_msg);
+		write_to_log(GIT_STASHD_LOG_NAME, log_info_msg, LOG_INFO);
 		FREE(log_info_msg);
 
 		/**
@@ -297,12 +245,12 @@ int main (int argc, char **argv) {
 		index_status = is_worktree_dirty(&wt_err, path);
 
 		if (wt_err) {
-			char *wt_err_msg, wt_err_fmt = "--> Encountered an error when checking the index status.";
+			char *wt_err_msg;
 
-			wt_err_msg = ALLOC(sizeof(char) * ((strlen(wt_err_fmt) + NULL_BYTE)));
-			sprintf(wt_err_msg, wt_err_fmt);
+			wt_err_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE)));
+			sprintf(wt_err_msg, GIT_STASHD_CHECK_INDEX_STATUS_ERROR);
 
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, wt_err_msg);
+			write_to_log(GIT_STASHD_LOG_NAME, wt_err_msg, LOG_INFO);
 			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -315,12 +263,12 @@ int main (int argc, char **argv) {
 		entry_status = has_coequal_entry(&ds_err, path, stash);
 
 		if (ds_err) {
-			char *ds_err_msg, ds_err_fmt = "--> Error encountered when searching for equivalent entry.";
+			char *ds_err_msg;
 
-			ds_err_msg = ALLOC(sizeof(char) * (strlen(ds_err_fmt)));
-			sprintf(ds_err_msg, ds_err_fmt);
+			ds_err_msg = ALLOC(sizeof(char) * (strlen(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR)));
+			sprintf(ds_err_msg, GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR);
 
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ds_err_msg);
+			write_to_log(GIT_STASHD_LOG_NAME, ds_err_msg, LOG_INFO);
 			FREE(ds_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -338,26 +286,20 @@ int main (int argc, char **argv) {
 			 */
 			if (!has_entry) {
 				int ae_err;
-				char *ae_info_msg, *ae_info_fmt = "--> Worktree is dirty, no equivalent entry. Adding new entry.";
+				char *ae_info_msg;
 
 				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
-					char *ae_err_msg, *ae_err_fmt = "--> Error encountered when adding entry to stash.";
-
-					ae_err_msg = ALLOC(sizeof(char) * (strlen(ae_err_fmt) + NULL_BYTE));
-					sprintf(ae_err_msg, ae_err_fmt);
-
-					write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ae_err_msg);
-					FREE(ae_err_msg);
+					write_to_log(GIT_STASHD_LOG_NAME, GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR, LOG_INFO);
 
 					exit(EXIT_FAILURE);
 				}
 
-				ae_info_msg = ALLOC(sizeof(char) * ((strlen(ae_info_fmt) + NULL_BYTE)));
-				sprintf(ae_info_msg, ae_info_fmt);
+				ae_info_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)));
+				sprintf(ae_info_msg, GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY);
 
-				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ae_info_msg);
+				write_to_log(GIT_STASHD_LOG_NAME, ae_info_msg, LOG_INFO);
 				FREE(ae_info_msg);
 
 				/**
@@ -370,17 +312,11 @@ int main (int argc, char **argv) {
 				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
-				write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, ee_err_msg);
+				write_to_log(GIT_STASHD_LOG_NAME, ee_err_msg, LOG_INFO);
 				FREE(ee_err_msg);
 			}
 		} else {
-			char *clean_index_msg, *clean_index_fmt = "--> Worktree is clean, no action taken.";
-
-			clean_index_msg = ALLOC(sizeof(char) * (strlen(clean_index_fmt) + NULL_BYTE));
-			sprintf(clean_index_msg, clean_index_fmt);
-
-			write_log_file(&fp_err, GIT_STASHD_LOG_FILE, GIT_STASHD_LOG_MODE, clean_index_msg);
-			FREE(clean_index_msg);
+			write_to_log(GIT_STASHD_LOG_NAME, GIT_STASHD_WORKTREE_CLEAN_NO_ACTION, LOG_INFO);
 		}
 
 		/**

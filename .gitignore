@@ -1,5 +1,9 @@
+git-stashd
+
 *.a
 *.o
+*.dSYM
+[ds]trace.txt
 *.sw[po]
 
 build/*

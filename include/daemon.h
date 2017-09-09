@@ -7,18 +7,22 @@
 #ifndef GIT_STASHD_DAEMON_H
 #define GIT_STASHD_DAEMON_H
 
+#include <syslog.h>
 #include "common.h"
 #include "signals.h"
 #include "utils.h"
 
-#define GIT_STASHD_LOG_DIR  "/var/log"
-#define GIT_STASHD_LOG_FILE "/var/log/git-stashd.log"
-#define GIT_STASHD_LOG_MODE "a+"
-
+#define GIT_STASHD_LOG_NAME "git-stashd"
 #define GIT_STASHD_INTERVAL 600
 
-void fork_proc(void);
+#define GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR "--> Error encountered when adding entry to stash."
+#define GIT_STASHD_CHECK_INDEX_STATUS_ERROR "--> Encountered an error when checking the index status."
+#define GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR "--> Error encountered when searching for equivalent entry."
+#define GIT_STASHD_WORKTREE_CLEAN_NO_ACTION "--> Worktree is clean, no action taken."
+#define GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY "--> Worktree is dirty, no equivalent entry. Adding new entry."
+
+void daemonize(void);
 void touch_log_file(int *error, char *log_file, char *filemode);
-void write_log_file(int *error, char *filename, char *filemode, char *message);
+void write_to_log(const char *name, const char *message, int level);
 
 #endif /* GIT_STASHD_DAEMON_H */
