@@ -45,7 +45,7 @@ $(TARGET): $(CSFILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LG2_ARC) $(LDFLAGS)
 
 clean:
-	$(RM) $(RMFLAGS) $(TARGET) $(TARGET).* $(LG2_DIR)
+	@cd $(TOOLS) && ./clean.sh
 
 install:
 	@cd $(TOOLS) && ./install.sh
