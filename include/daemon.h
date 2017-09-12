@@ -12,7 +12,8 @@
 #include "signals.h"
 #include "utils.h"
 
-#define GIT_STASHD_LOG_NAME "git-stashd"
+#define GIT_STASHD_LOG_FILE "git-stashd.log"
+#define GIT_STASHD_LOG_MODE "a+"
 #define GIT_STASHD_INTERVAL 600
 
 #define GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR "--> Error encountered when adding entry to stash."
@@ -22,7 +23,7 @@
 #define GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY "--> Worktree is dirty, no equivalent entry. Adding new entry."
 
 void daemonize(void);
-void touch_log_file(int *error, char *log_file, char *filemode);
-void write_to_log(const char *name, const char *message, int level);
+void touch_log_file(int*, char*, const char*);
+void write_to_log(int*, const char*, const char*, const char*);
 
 #endif /* GIT_STASHD_DAEMON_H */
