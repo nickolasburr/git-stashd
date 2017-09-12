@@ -13,7 +13,7 @@
  */
 
 /**
- * GNU `basename` polyfill
+ * GNU `basename` polyfill.
  */
 char *base_name (char *path) {
 	char *base = strrchr(path, '/');
@@ -40,6 +40,35 @@ char *concat (char *buf, char *str) {
  */
 char *copy (char *buf, char *str) {
 	return strcpy(buf, str);
+}
+
+/**
+ * GNU `dirname` polyfill.
+ */
+char *dir_name (char *path) {
+	static const char *dot = ".";
+	char *pslash;
+
+	/**
+	 * Get trailing slash.
+	 */
+	pslash = !is_null(path)
+	       ? strrchr (path, '/')
+	       : NULL;
+
+	if (pslash == path) {
+		++pslash;
+	} else if (!is_null(pslash) && pslash[1] == '\0') {
+		pslash = memchr(path, pslash - path, '/');
+	}
+
+	if (!is_null(pslash)) {
+		pslash[0] = '\0';
+	} else {
+		path = (char *) dot;
+	}
+
+	return path;
 }
 
 /**

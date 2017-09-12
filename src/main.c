@@ -6,9 +6,16 @@
 
 #include "main.h"
 
+/**
+ * @notes extern log_path declared in common.h.
+ */
+char log_path[PATH_MAX];
+
 int main (int argc, char **argv) {
 	int index,
 	    fp_err,
+	    log_fp_err,
+	    log_rw_err,
 	    init_err,
 	    arg_index,
 	    opt_index,
@@ -19,6 +26,9 @@ int main (int argc, char **argv) {
 	    last_index,
 	    stash_length;
 	char path_buf[PATH_MAX],
+	     home_dir[PATH_MAX],
+	     log_dir[PATH_MAX],
+	     log_realpath[PATH_MAX],
 	     s_interval[4],
 	     *cwd,
 	     *log_file,
@@ -46,6 +56,11 @@ int main (int argc, char **argv) {
 	 * Daemonize by default.
 	 */
 	daemonized = 1;
+
+	/**
+	 * Get $HOME directory for user.
+	 */
+	copy(home_dir, getenv("HOME"));
 
 	/**
 	 * If the `--help` option was given, display usage details and exit.
@@ -94,6 +109,81 @@ int main (int argc, char **argv) {
 		interval = atoi(s_interval);
 	} else {
 		interval = GIT_STASHD_INTERVAL;
+	}
+
+	/**
+	 * Check if `--log-file` option was given.
+	 */
+	if (in_array(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_LOG_FILE_S, argv, argc)) {
+
+		opt_index = (index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_LOG_FILE_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_LOG_FILE_S, argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--log-file: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		realpath(argv[arg_index], log_path);
+		copy(log_dir, dir_name(base_name(log_path)));
+
+		printf("log_path -> %s\n", log_path);
+		printf("log_path -> %s\n", log_dir);
+
+		/**
+		 * Check if `log_path` is an existing file, or if it needs to be created.
+		 */
+		if (!is_file(log_path)) {
+
+			/**
+			 * Die if the directory isn't writable.
+			 */
+			if (!is_writable(log_dir)) {
+				fprintf(stderr, "--log-file: %s is not writable.\n", log_dir);
+
+				exit(EXIT_FAILURE);
+			}
+
+			touch_log_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
+
+			if (log_fp_err) {
+				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
+
+				exit(EXIT_FAILURE);
+			}
+		}
+	} else {
+		realpath(GIT_STASHD_LOG_FILE, log_path);
+		copy(log_dir, dir_name(base_name(log_path)));
+
+		printf("log_path -> %s\n", log_path);
+		printf("log_path -> %s\n", log_dir);
+
+		/**
+		 * Check if `log_path` is an existing file, or if it needs to be created.
+		 */
+		if (!is_file(log_path)) {
+
+			/**
+			 * Die if the directory isn't writable (for some odd reason).
+			 */
+			if (!is_writable(log_dir)) {
+				fprintf(stderr, "--log-file: %s is not writable.\n", log_dir);
+
+				exit(EXIT_FAILURE);
+			}
+
+			touch_log_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
+
+			if (log_fp_err) {
+				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
+
+				exit(EXIT_FAILURE);
+			}
+		}
 	}
 
 	/**
@@ -236,7 +326,7 @@ int main (int argc, char **argv) {
 		/**
 		 * Write informational message to log file.
 		 */
-		write_to_log(GIT_STASHD_LOG_NAME, log_info_msg, LOG_INFO);
+		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, log_info_msg);
 		FREE(log_info_msg);
 
 		/**
@@ -250,7 +340,7 @@ int main (int argc, char **argv) {
 			wt_err_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE)));
 			sprintf(wt_err_msg, GIT_STASHD_CHECK_INDEX_STATUS_ERROR);
 
-			write_to_log(GIT_STASHD_LOG_NAME, wt_err_msg, LOG_INFO);
+			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, wt_err_msg);
 			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -268,7 +358,7 @@ int main (int argc, char **argv) {
 			ds_err_msg = ALLOC(sizeof(char) * (strlen(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR)));
 			sprintf(ds_err_msg, GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR);
 
-			write_to_log(GIT_STASHD_LOG_NAME, ds_err_msg, LOG_INFO);
+			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ds_err_msg);
 			FREE(ds_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -291,7 +381,7 @@ int main (int argc, char **argv) {
 				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
-					write_to_log(GIT_STASHD_LOG_NAME, GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR, LOG_INFO);
+					write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
 
 					exit(EXIT_FAILURE);
 				}
@@ -299,7 +389,7 @@ int main (int argc, char **argv) {
 				ae_info_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)));
 				sprintf(ae_info_msg, GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY);
 
-				write_to_log(GIT_STASHD_LOG_NAME, ae_info_msg, LOG_INFO);
+				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ae_info_msg);
 				FREE(ae_info_msg);
 
 				/**
@@ -312,11 +402,11 @@ int main (int argc, char **argv) {
 				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
-				write_to_log(GIT_STASHD_LOG_NAME, ee_err_msg, LOG_INFO);
+				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ee_err_msg);
 				FREE(ee_err_msg);
 			}
 		} else {
-			write_to_log(GIT_STASHD_LOG_NAME, GIT_STASHD_WORKTREE_CLEAN_NO_ACTION, LOG_INFO);
+			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_WORKTREE_CLEAN_NO_ACTION);
 		}
 
 		/**
