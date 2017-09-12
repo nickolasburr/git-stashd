@@ -14,20 +14,15 @@
 #include "common.h"
 #include "signals.h"
 
-#ifdef __APPLE__
-#include <limits.h>
-#else
-#include <linux/limits.h>
-#endif
-
 /**
  * String utilities
  */
 
-char *base_name(char *path);
+char *base_name(char*);
 int compare(char *one, char *two);
 char *concat(char *buf, char *str);
 char *copy(char *buf, char *str);
+char *dir_name(char*);
 int index_of(char *element, char *array[], size_t size);
 int in_array(char *element, char *array[], size_t size);
 char *length(char *buf);
