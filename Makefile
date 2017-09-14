@@ -2,7 +2,7 @@
 ### Makefile
 ###
 
-CC      = colorgcc
+CC      = gcc
 TARGET  = git-stashd
 INSTALL = /usr/bin/install -c
 
