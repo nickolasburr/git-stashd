@@ -30,7 +30,7 @@ make install
 
 + `--foreground`, `-F`: Run daemon in foreground. Helpful for debugging.
 + `--interval`, `-I`: Interval (in seconds) to check for changes. Defaults to `600` (10 minutes).
-+ `--log-file`, `-L`: Path to alternate log file. Default location is `/var/log/git-stashd.log`.
++ `--log-file`, `-L`: Path to alternate log file. Default location is `$HOME/git-stashd.log`.
 + `--max-entries`, `-M`: Maximum number of entries a stash should hold. Once the threshold has been met, the daemon will exit.
 + `--path`, `-P`: Path to Git repository. Defaults to `cwd`.
 
