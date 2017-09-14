@@ -5,8 +5,15 @@ set -ex
 PREFIX=/usr/local
 BINDIR=$PREFIX/bin
 
+TARGET="git-stashd"
+MANPAGE="$TARGET.1.gz"
+MANDEST=$PREFIX/share/man/man1
+
 INSTALL=/usr/bin/install
 OPTIONS="-c"
-TARGET="git-stashd"
 
-cd .. && eval "$INSTALL $OPTIONS $TARGET $BINDIR/$TARGET"
+cd ..
+
+cp "man/$MANPAGE" "$MANDEST/$MANPAGE"
+
+eval "$INSTALL $OPTIONS $TARGET $BINDIR/$TARGET"

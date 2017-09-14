@@ -7,6 +7,9 @@ BINDIR=$PREFIX/bin
 
 RM="rm"
 RMFLAGS="-rf"
-TARGET="git-stashd"
 
-eval "$RM $RMFLAGS $BINDIR/$TARGET"
+TARGET="git-stashd"
+MANPAGE="$TARGET.1.gz"
+MANDEST=$PREFIX/share/man/man1
+
+eval "$RM $RMFLAGS $BINDIR/$TARGET $MANDEST/$MANPAGE"
