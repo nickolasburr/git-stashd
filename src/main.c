@@ -159,10 +159,11 @@ int main (int argc, char **argv) {
 		}
 	} else {
 		/**
-		 * Set realpath value on log_path.
+		 * Set absolute path to $HOME/git-stashd.log on log_path.
 		 */
-		realpath(GIT_STASHD_LOG_FILE, log_path);
-		copy(log_dir, dir_name(base_name(log_path)));
+		copy(log_path, home_dir);
+		concat(log_path, "/");
+		concat(log_path, GIT_STASHD_LOG_FILE);
 
 		/**
 		 * Check if `log_path` is an existing file, or if it needs to be created.
@@ -170,10 +171,10 @@ int main (int argc, char **argv) {
 		if (!is_file(log_path)) {
 
 			/**
-			 * Die if the directory isn't writable (for some odd reason).
+			 * Die if the directory isn't writable (for whatever odd, troublesome reason it could be).
 			 */
-			if (!is_writable(log_dir)) {
-				fprintf(stderr, "--log-file: %s is not writable.\n", log_dir);
+			if (!is_writable(home_dir)) {
+				fprintf(stderr, "--log-file: %s is not writable.\n", home_dir);
 
 				exit(EXIT_FAILURE);
 			}
@@ -456,7 +457,7 @@ int main (int argc, char **argv) {
 				char *ee_err_msg,
 				     *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
 
-				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
+				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
 				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ee_err_msg);

@@ -10,7 +10,7 @@
  * Print formatted usage message to stdout.
  */
 void usage (void) {
-	printf("Usage: git-stashd [OPTIONS]\n\nType 'man git-stashd' for details");
+	printf("Usage: git-stashd [OPTIONS]\n\nType 'man git-stashd' for details\n");
 
 	exit(EXIT_SUCCESS);
 }
