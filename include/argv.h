@@ -19,6 +19,8 @@
 #define GIT_STASHD_OPT_INTERVAL_S "-I"
 #define GIT_STASHD_OPT_LOG_FILE_L "--log-file"
 #define GIT_STASHD_OPT_LOG_FILE_S "-L"
+#define GIT_STASHD_OPT_MAX_ENTRIES_L "--max-entries"
+#define GIT_STASHD_OPT_MAX_ENTRIES_S "-M"
 #define GIT_STASHD_OPT_PATH_L "--path"
 #define GIT_STASHD_OPT_PATH_S "-P"
 

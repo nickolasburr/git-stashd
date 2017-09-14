@@ -24,12 +24,14 @@ int main (int argc, char **argv) {
 	    index_status,
 	    interval,
 	    last_index,
+	    max_entries,
 	    stash_length;
 	char path_buf[PATH_MAX],
 	     home_dir[PATH_MAX],
 	     log_dir[PATH_MAX],
 	     log_realpath[PATH_MAX],
 	     s_interval[4],
+	     s_max_entries[4],
 	     *cwd,
 	     *log_file,
 	     *path;
@@ -127,11 +129,11 @@ int main (int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 
+		/**
+		 * Set realpath value on log_path.
+		 */
 		realpath(argv[arg_index], log_path);
 		copy(log_dir, dir_name(base_name(log_path)));
-
-		printf("log_path -> %s\n", log_path);
-		printf("log_path -> %s\n", log_dir);
 
 		/**
 		 * Check if `log_path` is an existing file, or if it needs to be created.
@@ -156,11 +158,12 @@ int main (int argc, char **argv) {
 			}
 		}
 	} else {
-		realpath(GIT_STASHD_LOG_FILE, log_path);
-		copy(log_dir, dir_name(base_name(log_path)));
-
-		printf("log_path -> %s\n", log_path);
-		printf("log_path -> %s\n", log_dir);
+		/**
+		 * Set absolute path to $HOME/git-stashd.log on log_path.
+		 */
+		copy(log_path, home_dir);
+		concat(log_path, "/");
+		concat(log_path, GIT_STASHD_LOG_FILE);
 
 		/**
 		 * Check if `log_path` is an existing file, or if it needs to be created.
@@ -168,10 +171,10 @@ int main (int argc, char **argv) {
 		if (!is_file(log_path)) {
 
 			/**
-			 * Die if the directory isn't writable (for some odd reason).
+			 * Die if the directory isn't writable (for whatever odd, troublesome reason it could be).
 			 */
-			if (!is_writable(log_dir)) {
-				fprintf(stderr, "--log-file: %s is not writable.\n", log_dir);
+			if (!is_writable(home_dir)) {
+				fprintf(stderr, "--log-file: %s is not writable.\n", home_dir);
 
 				exit(EXIT_FAILURE);
 			}
@@ -184,6 +187,39 @@ int main (int argc, char **argv) {
 				exit(EXIT_FAILURE);
 			}
 		}
+	}
+
+	/**
+	 * Check if `--max-entries` option was given.
+	 * If so, verify it's an integer argument.
+	 */
+	if (in_array(GIT_STASHD_OPT_MAX_ENTRIES_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_MAX_ENTRIES_S, argv, argc)) {
+
+		opt_index = (index_of(GIT_STASHD_OPT_MAX_ENTRIES_L, argv, argc) != NOT_FOUND)
+		          ? index_of(GIT_STASHD_OPT_MAX_ENTRIES_L, argv, argc)
+		          : index_of(GIT_STASHD_OPT_MAX_ENTRIES_S, argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--max-entries: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		copy(s_max_entries, argv[arg_index]);
+
+		/**
+		 * Verify `--max-entries` option argument is a valid number.
+		 */
+		if (!is_numeric(s_max_entries)) {
+			fprintf(stderr, "--max-entries: Invalid argument %s. Argument must be an integer.\n", s_max_entries);
+
+			exit(EXIT_FAILURE);
+		}
+
+		max_entries = atoi(s_max_entries);
+	} else {
+		max_entries = GIT_STASHD_MAX_ENTRIES;
 	}
 
 	/**
@@ -255,7 +291,6 @@ int main (int argc, char **argv) {
 	 * Start initialization of stash and entries.
 	 *
 	 */
-
 	stash_length = 0;
 
 	/**
@@ -263,6 +298,9 @@ int main (int argc, char **argv) {
 	 */
 	git_stash_foreach(repo, init_setup, &stash_length);
 
+	/**
+	 * Allocate space for stash and repo structs.
+	 */
 	stash = ALLOC(sizeof(*stash));
 	stash->repository = ALLOC(sizeof(*stash_repo));
 	stash->length = (size_t) stash_length;
@@ -307,6 +345,25 @@ int main (int argc, char **argv) {
 	 */
 
 	while (1) {
+		/**
+		 * Exit if stash length meets or exceeds our max_entries value.
+		 */
+		if (stash->length >= max_entries) {
+			char *max_ent_info_msg,
+			     *max_ent_info_fmt = "Reached max entries of %d in %s, exiting...";
+
+			max_ent_info_msg = ALLOC(sizeof(char) * ((strlen(max_ent_info_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+			sprintf(max_ent_info_msg, max_ent_info_fmt, max_entries, path);
+
+			/**
+			 * Output max entries message to log file.
+			 */
+			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, max_ent_info_msg);
+			FREE(max_ent_info_msg);
+
+			break;
+		}
+
 		int ds_err, wt_err, has_entry;
 		char *log_info_msg,
 		     /**
@@ -397,9 +454,10 @@ int main (int argc, char **argv) {
 				 */
 				stash->length++;
 			} else {
-				char *ee_err_msg, *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
+				char *ee_err_msg,
+				     *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
 
-				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + 1)));
+				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
 				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ee_err_msg);
@@ -418,7 +476,6 @@ int main (int argc, char **argv) {
 	/**
 	 * Clean up before exiting.
 	 */
-
 	for (index = 0; index < stash->length; index += 1) {
 		FREE(stash->entries[index]);
 	}
