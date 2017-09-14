@@ -27,7 +27,7 @@ LG2_INC = $(LG2_DIR)/include
 
 KERNEL := $(shell sh -c 'uname -s 2>/dev/null || echo unknown')
 
-CFLAGS  = -ggdb -I$(INCLUDE) -I$(LG2_INC) -Wall -Wextra
+CFLAGS  = -I$(INCLUDE) -I$(LG2_INC)
 LDFLAGS = -pthread -lssl -lcrypto -lz
 
 ifeq "$(KERNEL)" "Darwin"
@@ -36,12 +36,14 @@ endif
 
 .PHONY: all build clean install uninstall
 
-all: build $(TARGET)
+all: $(TARGET)
 
 build:
 	@cd $(TOOLS) && ./build.sh
 
-$(TARGET): $(CSFILES)
+$(LG2_ARC): build
+
+$(TARGET): $(CSFILES) $(LG2_ARC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LG2_ARC) $(LDFLAGS)
 
 clean:

@@ -22,14 +22,16 @@ fi
 
 cd $LG2_BUILD_DIR &&
 
-cmake -DTHREADSAFE=ON                     \
-      -DBUILD_CLAR=OFF                    \
-      -DBUILD_SHARED_LIBS=OFF             \
-      -DUSE_SSH=OFF                       \
-      -DCURL=OFF                          \
-      -DCMAKE_C_FLAGS=-fPIC               \
-      -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-      -DCMAKE_INSTALL_PREFIX="$BUILD_DIR" \
+cmake -DTHREADSAFE=ON                                                                    \
+      -DBUILD_CLAR=OFF                                                                   \
+      -DBUILD_SHARED_LIBS=OFF                                                            \
+      -DUSE_SSH=OFF                                                                      \
+      -DCURL=OFF                                                                         \
+      -DCMAKE_C_FLAGS=-fPIC                                                              \
+      -DCMAKE_C_ARCHIVE_CREATE="<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>"          \
+      -DCMAKE_C_ARCHIVE_FINISH="<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>"   \
+      -DCMAKE_BUILD_TYPE="RelWithDebInfo"                                                \
+      -DCMAKE_INSTALL_PREFIX="$BUILD_DIR"                                                \
       .. &&
 
 cmake --build .
