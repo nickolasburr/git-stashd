@@ -6,6 +6,26 @@
 
 `git-stashd` brings autosave functionality to Git. By using the stashing functionality built into Git, `git-stashd` stores the modified contents of a dirty worktree in a stash, which you can checkout, commit, or discard at a later point.
 
+## Installation
+
+You can install `git-stashd` via Homebrew or manually. See the [tap repository](https://github.com/nickolasburr/homebrew-git-stashd) for tap-specific information.
+
+### Homebrew
+
+```shell
+brew tap nickolasburr/git-stashd
+brew install git-stashd
+```
+
+### Manual
+
+By default, `git-stashd` is installed to /usr/local/bin. You can set the `prefix` variable when running `make` to specify an alternate install location.
+
+```shell
+make
+make install
+```
+
 ## Options
 
 + `--foreground`, `-F`: Run daemon in foreground. Helpful for debugging.
