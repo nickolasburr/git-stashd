@@ -58,9 +58,9 @@ void daemonize (void) {
 }
 
 /**
- * Create log file.
+ * Create regular file.
  */
-void touch_log_file (int *error, char *filename, const char *filemode) {
+void touch_file (int *error, char *filename, const char *filemode) {
 	FILE *fp;
 	int fp_err;
 
