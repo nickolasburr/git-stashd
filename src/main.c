@@ -7,13 +7,14 @@
 #include "main.h"
 
 /**
- * @notes extern log_path declared in common.h.
+ * @note extern log_path declared in common.h.
  */
 char log_path[PATH_MAX];
 
 int main (int argc, char **argv) {
 	int index,
 	    fp_err,
+	    lock_err,
 	    log_fp_err,
 	    log_rw_err,
 	    init_err,
@@ -280,6 +281,26 @@ int main (int argc, char **argv) {
 	}
 
 	/**
+	 * If the repository already has a stashd.lock file,
+	 * write a message to the log file and exit failure.
+	 */
+	if (has_stashd_lock(&lock_err, path)) {
+		char *lock_err_msg, *lock_err_fmt = "Unable to create lock file in %s. File exists.";
+
+		lock_err_msg = ALLOC(sizeof(char) * ((strlen(lock_err_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+		sprintf(lock_err_msg, lock_err_fmt, path);
+
+		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, lock_err_msg);
+		FREE(lock_err_msg);
+
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * @todo: Create stashd.lock file.
+	 */
+
+	/**
 	 * Daemonize, unless user explicitly gave --foreground option.
 	 */
 	if (daemonized) {
@@ -299,7 +320,7 @@ int main (int argc, char **argv) {
 	git_stash_foreach(repo, init_setup, &stash_length);
 
 	/**
-	 * Allocate space for stash and repo structs.
+	 * Allocate space for stash, repo structs.
 	 */
 	stash = ALLOC(sizeof(*stash));
 	stash->repository = ALLOC(sizeof(*stash_repo));
@@ -341,7 +362,7 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * @todo: Add better cleanup handling between main and signal handlers.
+	 * @todo: Add better cleanup for signal and error handlers.
 	 */
 
 	while (1) {
@@ -421,6 +442,10 @@ int main (int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 
+		/**
+		 * @note Use of is_error here might be a bit of an abuse.
+		 *       Consider refactoring this to be more explicit.
+		 */
 		has_entry = !is_error(entry_status);
 
 		/**

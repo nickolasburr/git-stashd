@@ -50,7 +50,7 @@ void daemonize (void) {
 	}
 
 	/**
-	 * @notes extern log_path declared in common.h, defined in main.c.
+	 * @note extern log_path declared in common.h, defined in main.c.
 	 */
 	stdin  = fopen("/dev/null", "r");
 	stdout = fopen(log_path, GIT_STASHD_LOG_MODE);

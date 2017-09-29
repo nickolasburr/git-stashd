@@ -180,14 +180,11 @@ void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) 
 	sprintf(store_cmd, sformat, path, entry_msg, sha_buf);
 
 	/**
-	 * @todo: Use a better solution than system.
+	 * @todo: Use libgit2 instead of system call.
+	 *
+	 * If it was a non-zero exit, set the error marker.
 	 */
-	entry_status = system(store_cmd);
-
-	/**
-	 * If it was a non-zero exit, we can infer an error was encountered.
-	 */
-	if (entry_status) {
+	if (is_error((entry_status = system(store_cmd)))) {
 		*error = 1;
 	}
 
@@ -234,9 +231,71 @@ git_stash_cb *init_stash (size_t index, const char *message, const git_oid *stas
 }
 
 /**
+ * Check if a stashd.lock file exists for the repository.
+ */
+int has_stashd_lock (int *error, const char *path) {
+	FILE *fp;
+	int file_exists, fp_err, log_rw_err;
+	char repo_path[PATH_MAX],
+	     git_dir[PATH_MAX],
+	     line[PATH_MAX],
+	     lock_file[PATH_MAX],
+	     *git_dir_cmd;
+	/**
+	 * @todo: This should be a macro or static extern.
+	 */
+	static const char *git_dir_fmt = "/usr/bin/git -C %s rev-parse --git-dir";
+
+	*error = 0;
+
+	git_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(git_dir_fmt) + NULL_BYTE)));
+	sprintf(git_dir_cmd, git_dir_fmt, path);
+
+	fp = open_pipe(&fp_err, git_dir_cmd, "r");
+
+	if (fp_err) {
+		goto on_error;
+	}
+
+	while (!is_null(fgets(line, PATH_MAX, fp))) {
+		line[strcspn(line, "\r\n")] = 0;
+	}
+
+	/**
+	 * Get absolute path to repository.
+	 */
+	realpath(path, repo_path);
+
+	/**
+	 * Get basename of $GIT_DIR.
+	 */
+	copy(git_dir, base_name(line));
+
+	/**
+	 * Assemble absolute path to stashd.lock file.
+	 */
+	copy(lock_file, repo_path);
+	concat(lock_file, "/");
+	concat(lock_file, git_dir);
+	concat(lock_file, "/stashd.lock");
+
+	close_pipe(fp);
+	FREE(git_dir_cmd);
+
+	return is_file(lock_file);
+
+on_error:
+	close_pipe(fp);
+	FREE(git_dir_cmd);
+
+	*error = 1;
+	return -1;
+}
+
+/**
  * Check if the worktree is dirty.
  *
- * @todo: Rebuild this using libgit2 `git_diff_index_to_workdir`.
+ * @todo: Rebuild with libgit2 `git_diff_index_to_workdir`.
  */
 int is_worktree_dirty (int *error, const char *path) {
 	int index_status;
@@ -244,32 +303,32 @@ int is_worktree_dirty (int *error, const char *path) {
 	/**
 	 * @todo: These should be macros or static externs.
 	 */
-	static const char *diff_index_format   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
-	                  *update_index_format = "/usr/bin/git -C %s update-index -q --really-refresh";
+	static const char *diff_index_fmt   = "/usr/bin/git -C %s diff-index --quiet HEAD --",
+	                  *update_index_fmt = "/usr/bin/git -C %s update-index -q --really-refresh";
 
 	*error = 0;
 
 	/**
-	 * Allocate space for `diff_index_cmd` and `update_index_cmd`,
+	 * Allocate space for `diff_index_cmd`, `update_index_cmd`,
 	 * format both strings for use with `system` builtin.
 	 */
-	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(diff_index_format) + NULL_BYTE)));
-	sprintf(diff_index_cmd, diff_index_format, path);
+	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(diff_index_fmt) + NULL_BYTE)));
+	sprintf(diff_index_cmd, diff_index_fmt, path);
 
-	update_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(update_index_format) + NULL_BYTE)));
-	sprintf(update_index_cmd, update_index_format, path);
+	update_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(update_index_fmt) + NULL_BYTE)));
+	sprintf(update_index_cmd, update_index_fmt, path);
 
 	/**
-	 * Refresh the index before checking state.
-	 * Set error marker if an error occurred.
+	 * Refresh the index before checking state,
+	 * set error marker if an error occurred.
 	 */
 	if (is_error(system(update_index_cmd))) {
 		*error = 1;
 	}
 
 	/**
-	 * Get state information via `diff-index`.
-	 * Set error marker if an error occurred.
+	 * Get state information via `diff-index`,
+	 * set error marker if an error occurred.
 	 */
 	if (is_error((index_status = system(diff_index_cmd)))) {
 		*error = 1;

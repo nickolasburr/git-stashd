@@ -162,7 +162,7 @@ int close_pipe (FILE *fp) {
 /**
  * Determine if pathname is a directory.
  *
- * @notes Adapted from https://goo.gl/ZmWfbx
+ * @note Adapted from https://goo.gl/ZmWfbx
  */
 int is_dir (const char *path) {
 	struct dirent *de;
@@ -195,7 +195,7 @@ int is_dir (const char *path) {
 /**
  * Determine if pathname is a regular file.
  *
- * @notes Adapted from https://goo.gl/ZmWfbx
+ * @note Adapted from https://goo.gl/ZmWfbx
  */
 int is_file (const char *path) {
 	struct stat st;
