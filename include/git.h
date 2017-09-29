@@ -46,8 +46,9 @@ struct git_stashd_repository {
 };
 
 void add_stash_entry(int *error, const char *path, struct git_stashd_stash *s);
+char *get_git_dir(int*, const char*);
 int has_coequal_entry(int *error, const char *path, struct git_stashd_stash *s);
-int has_stashd_lock(int *error, const char *path);
+int has_lock(int *error, const char *path);
 int is_worktree_dirty(int *error, const char *path);
 
 git_stash_cb *init_setup(size_t index, const char *message, const git_oid *stash_id, void *payload);
