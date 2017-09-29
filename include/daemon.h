@@ -7,11 +7,12 @@
 #ifndef GIT_STASHD_DAEMON_H
 #define GIT_STASHD_DAEMON_H
 
-#include <syslog.h>
 #include "common.h"
 #include "signals.h"
 #include "utils.h"
 
+#define GIT_STASHD_LOCK_FILE "stashd.lock"
+#define GIT_STASHD_LOCK_MODE "w+"
 #define GIT_STASHD_LOG_FILE "git-stashd.log"
 #define GIT_STASHD_LOG_MODE "a+"
 #define GIT_STASHD_INTERVAL 600
@@ -24,7 +25,7 @@
 #define GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY "--> Worktree is dirty, no equivalent entry. Adding new entry."
 
 void daemonize(void);
-void touch_log_file(int*, char*, const char*);
+void touch_file(int*, char*, const char*);
 void write_to_log(int*, const char*, const char*, const char*);
 
 #endif /* GIT_STASHD_DAEMON_H */

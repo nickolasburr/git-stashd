@@ -14,7 +14,9 @@ char log_path[PATH_MAX];
 int main (int argc, char **argv) {
 	int index,
 	    fp_err,
+	    git_dir_err,
 	    lock_err,
+	    lock_fp_err,
 	    log_fp_err,
 	    log_rw_err,
 	    init_err,
@@ -28,7 +30,9 @@ int main (int argc, char **argv) {
 	    max_entries,
 	    stash_length;
 	char path_buf[PATH_MAX],
+	     git_dir[PATH_MAX],
 	     home_dir[PATH_MAX],
+	     lock_file[PATH_MAX],
 	     log_dir[PATH_MAX],
 	     log_realpath[PATH_MAX],
 	     s_interval[4],
@@ -150,7 +154,7 @@ int main (int argc, char **argv) {
 				exit(EXIT_FAILURE);
 			}
 
-			touch_log_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
+			touch_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
 
 			if (log_fp_err) {
 				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
@@ -180,7 +184,7 @@ int main (int argc, char **argv) {
 				exit(EXIT_FAILURE);
 			}
 
-			touch_log_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
+			touch_file(&log_fp_err, log_path, GIT_STASHD_LOG_MODE);
 
 			if (log_fp_err) {
 				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
@@ -284,7 +288,7 @@ int main (int argc, char **argv) {
 	 * If the repository already has a stashd.lock file,
 	 * write a message to the log file and exit failure.
 	 */
-	if (has_stashd_lock(&lock_err, path)) {
+	if (has_lock(&lock_err, path)) {
 		char *lock_err_msg, *lock_err_fmt = "Unable to create lock file in %s. File exists.";
 
 		lock_err_msg = ALLOC(sizeof(char) * ((strlen(lock_err_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
@@ -296,9 +300,19 @@ int main (int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	copy(git_dir, get_git_dir(&git_dir_err, path));
+
+	/**
+	 * Assemble absolute path to stashd.lock file.
+	 */
+	copy(lock_file, git_dir);
+	concat(lock_file, "/");
+	concat(lock_file, GIT_STASHD_LOCK_FILE);
+
 	/**
 	 * @todo: Create stashd.lock file.
 	 */
+	touch_file(&lock_fp_err, lock_file, GIT_STASHD_LOCK_MODE);
 
 	/**
 	 * Daemonize, unless user explicitly gave --foreground option.
@@ -362,7 +376,7 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * @todo: Add better cleanup for signal and error handlers.
+	 * @todo: Add better cleanup for signal, error handlers.
 	 */
 
 	while (1) {
@@ -497,6 +511,11 @@ int main (int argc, char **argv) {
 		 */
 		nap(interval);
 	}
+
+	/**
+	 * @todo: Consolidate this in on_cleanup goto.
+	 */
+	unlink(lock_file);
 
 	/**
 	 * Clean up before exiting.

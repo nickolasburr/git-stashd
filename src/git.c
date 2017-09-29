@@ -120,7 +120,7 @@ char *get_current_branch (int *error, const char *path, char *ref_buf) {
 /**
  * Add new entry to stash.
  *
- * @todo: Use libgit2 for creating/applying stash.
+ * @todo: Use libgit2 for creating/applying stash entry.
  */
 void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) {
 	FILE *fp;
@@ -231,13 +231,93 @@ git_stash_cb *init_stash (size_t index, const char *message, const git_oid *stas
 }
 
 /**
+ * Get absolute path to .git directory.
+ *
+ * @todo: Refactor variable usage.
+ */
+char *get_git_dir (int *error, const char *path) {
+	FILE *fp;
+	int fp_err;
+	char abs_path[PATH_MAX],
+	     git_dir[PATH_MAX],
+	     git_dir_buf[PATH_MAX],
+	     top_dir[PATH_MAX],
+	     top_dir_buf[PATH_MAX],
+	     *git_dir_cmd,
+	     *top_dir_cmd;
+	/**
+	 * @todo: These should be macros or static externs.
+	 */
+	static const char *git_dir_fmt = "/usr/bin/git -C %s rev-parse --git-dir",
+	                  *top_dir_fmt = "/usr/bin/git -C %s rev-parse --show-toplevel";
+
+	*error = 0;
+
+	git_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(git_dir_fmt) + NULL_BYTE)));
+	sprintf(git_dir_cmd, git_dir_fmt, path);
+
+	fp = open_pipe(&fp_err, git_dir_cmd, "r");
+
+	if (fp_err) {
+		goto on_error;
+	}
+
+	while (!is_null(fgets(git_dir_buf, PATH_MAX, fp))) {
+		git_dir_buf[strcspn(git_dir_buf, "\r\n")] = 0;
+	}
+
+	copy(git_dir, git_dir_buf);
+
+	/**
+	 * Flush the stream.
+	 */
+	fflush(fp);
+
+	top_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(top_dir_fmt) + NULL_BYTE)));
+	sprintf(top_dir_cmd, top_dir_fmt, path);
+
+	fp = open_pipe(&fp_err, top_dir_cmd, "r");
+
+	if (fp_err) {
+		goto on_error;
+	}
+
+	while (!is_null(fgets(top_dir_buf, PATH_MAX, fp))) {
+		top_dir_buf[strcspn(top_dir_buf, "\r\n")] = 0;
+	}
+
+	copy(top_dir, top_dir_buf);
+
+	/**
+	 * Assemble absolute path to .git directory.
+	 */
+	copy(abs_path, top_dir);
+	concat(abs_path, "/");
+	concat(abs_path, base_name(git_dir));
+
+	close_pipe(fp);
+	FREE(git_dir_cmd);
+	FREE(top_dir_cmd);
+
+	return abs_path;
+
+on_error:
+	*error = 1;
+
+	close_pipe(fp);
+	FREE(git_dir_cmd);
+	FREE(top_dir_cmd);
+
+	return abs_path;
+}
+
+/**
  * Check if a stashd.lock file exists for the repository.
  */
-int has_stashd_lock (int *error, const char *path) {
+int has_lock (int *error, const char *path) {
 	FILE *fp;
-	int file_exists, fp_err, log_rw_err;
-	char repo_path[PATH_MAX],
-	     git_dir[PATH_MAX],
+	int fp_err;
+	char git_dir[PATH_MAX],
 	     line[PATH_MAX],
 	     lock_file[PATH_MAX],
 	     *git_dir_cmd;
@@ -262,11 +342,6 @@ int has_stashd_lock (int *error, const char *path) {
 	}
 
 	/**
-	 * Get absolute path to repository.
-	 */
-	realpath(path, repo_path);
-
-	/**
 	 * Get basename of $GIT_DIR.
 	 */
 	copy(git_dir, base_name(line));
@@ -274,10 +349,11 @@ int has_stashd_lock (int *error, const char *path) {
 	/**
 	 * Assemble absolute path to stashd.lock file.
 	 */
-	copy(lock_file, repo_path);
+	copy(lock_file, path);
 	concat(lock_file, "/");
 	concat(lock_file, git_dir);
-	concat(lock_file, "/stashd.lock");
+	concat(lock_file, "/");
+	concat(lock_file, GIT_STASHD_LOCK_FILE);
 
 	close_pipe(fp);
 	FREE(git_dir_cmd);
@@ -285,10 +361,11 @@ int has_stashd_lock (int *error, const char *path) {
 	return is_file(lock_file);
 
 on_error:
+	*error = 1;
+
 	close_pipe(fp);
 	FREE(git_dir_cmd);
 
-	*error = 1;
 	return -1;
 }
 
