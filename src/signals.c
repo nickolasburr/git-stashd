@@ -12,10 +12,28 @@
 void on_signal (int signal) {
 	switch (signal) {
 		case SIGHUP:
-			printf("Caught SIGHUP, hanging up...\n");
+			fprintf(stdout, "Caught SIGHUP, hanging up...\n");
+
+			/**
+			 * @note: Extern lock_file declared in common.h, defined in main.c.
+			 * @todo: Move this to dedicated function.
+			 */
+			if (is_file(lock_file)) {
+				unlink(lock_file);
+			}
+
 			break;
 		case SIGINT:
-			printf("Caught SIGINT, terminating...\n");
+			fprintf(stdout, "Caught SIGINT, terminating...\n");
+
+			/**
+			 * @note: Extern lock_file declared in common.h, defined in main.c.
+			 * @todo: Move this to dedicated function.
+			 */
+			if (is_file(lock_file)) {
+				unlink(lock_file);
+			}
+
 			exit(EXIT_SUCCESS);
 		default:
 			fprintf(stderr, "Caught wrong signal: %d\n", signal);
