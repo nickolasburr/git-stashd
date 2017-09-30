@@ -70,8 +70,8 @@ void touch_file (int *error, char *filename, const char *filemode) {
 	 * Remove trailing slash from path, if present.
 	 * e.g. /var/log/alternate.log/
 	 */
-	if (filename[strlen(filename) - 1] == '/') {
-		filename[strlen(filename) - 1] = 0;
+	if (filename[length(filename) - 1] == '/') {
+		filename[length(filename) - 1] = 0;
 	}
 
 	fp = get_file(&fp_err, filename, filemode);
