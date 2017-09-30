@@ -7,8 +7,9 @@
 #include "main.h"
 
 /**
- * @note extern log_path declared in common.h.
+ * @note: Externs lock_file, log_path declared in common.h.
  */
+char lock_file[PATH_MAX];
 char log_path[PATH_MAX];
 
 int main (int argc, char **argv) {
@@ -300,6 +301,9 @@ int main (int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	/**
+	 * Get absolute path to repository .git directory.
+	 */
 	copy(git_dir, get_git_dir(&git_dir_err, path));
 
 	/**
@@ -310,7 +314,7 @@ int main (int argc, char **argv) {
 	concat(lock_file, GIT_STASHD_LOCK_FILE);
 
 	/**
-	 * @todo: Create stashd.lock file.
+	 * Create stashd.lock file.
 	 */
 	touch_file(&lock_fp_err, lock_file, GIT_STASHD_LOCK_MODE);
 
@@ -457,8 +461,8 @@ int main (int argc, char **argv) {
 		}
 
 		/**
-		 * @note Use of is_error here might be a bit of an abuse.
-		 *       Consider refactoring this to be more explicit.
+		 * @note: Use of is_error here might be a bit of an abuse.
+		 *        Consider refactoring this to be more explicit.
 		 */
 		has_entry = !is_error(entry_status);
 
