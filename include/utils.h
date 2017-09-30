@@ -18,39 +18,39 @@
  * String utilities
  */
 
-char *base_name(char*);
-int compare(char *one, char *two);
-char *concat(char *buf, char *str);
-char *copy(char *buf, char *str);
-char *dir_name(char*);
-int index_of(char *element, char *array[], size_t size);
-int in_array(char *element, char *array[], size_t size);
-char *length(char *buf);
+char *base_name(char *);
+int compare(char *, char *);
+char *concat(char *, char *);
+char *copy(char *, char *);
+char *dir_name(char *);
+int index_of(char *, char **, size_t);
+int in_array(char *, char **, size_t);
+int length(char *);
 
 /**
  * Filesystem utilities
  */
 
-DIR *get_dir(int *error, const char *path);
-FILE *get_file(int *error, const char *filename, const char *filemode);
+DIR *get_dir(int *, const char *);
+FILE *get_file(int *, const char *, const char *);
 
-FILE *open_pipe(int *error, const char *command, const char *pipemode);
-int close_pipe(FILE *fp);
+FILE *open_pipe(int *, const char *, const char *);
+int close_pipe(FILE *);
 
-int is_dir(const char *path);
-int is_file(const char *path);
-int is_link(const char *path);
-int is_sock(const char *path);
-int is_fifo(const char *path);
-int is_block(const char *path);
-int is_char(const char *path);
+int is_dir(const char *);
+int is_file(const char *);
+int is_link(const char *);
+int is_sock(const char *);
+int is_fifo(const char *);
+int is_block(const char *);
+int is_char(const char *);
 
 /**
  * Type utilities
  */
 
-int is_digit(int c);
-int is_null(void *ptr);
-int is_numeric(char *str);
+int is_digit(int);
+int is_null(void *);
+int is_numeric(char *);
 
 #endif /* GIT_STASHD_UTILS_H */

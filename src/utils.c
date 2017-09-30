@@ -53,7 +53,7 @@ char *dir_name (char *path) {
 	 * Get trailing slash.
 	 */
 	pslash = !is_null(path)
-	       ? strrchr (path, '/')
+	       ? strrchr(path, '/')
 	       : NULL;
 
 	if (pslash == path) {
@@ -74,7 +74,7 @@ char *dir_name (char *path) {
 /**
  * Get index of element in array.
  */
-int index_of (char *element, char *array[], size_t size) {
+int index_of (char *element, char **array, size_t size) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
@@ -89,7 +89,7 @@ int index_of (char *element, char *array[], size_t size) {
 /**
  * Check if element exists in array.
  */
-int in_array (char *element, char *array[], size_t size) {
+int in_array (char *element, char **array, size_t size) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
@@ -99,6 +99,13 @@ int in_array (char *element, char *array[], size_t size) {
 	}
 
 	return 0;
+}
+
+/**
+ * `strlen` wrapper
+ */
+int length (char *str) {
+	return strlen(str);
 }
 
 /**
