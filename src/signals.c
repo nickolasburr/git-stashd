@@ -10,33 +10,53 @@
  * Run cleanup on SIGHUP or SIGINT.
  */
 void on_signal (int signal) {
+	sigset_t queue;
+	pid_t pid = getpid();
+
 	switch (signal) {
 		case SIGHUP:
-			fprintf(stdout, "Caught SIGHUP, hanging up...\n");
+			fprintf(stdout, "[%zu] Caught SIGHUP. Running cleanup tasks before shutdown.\n", pid);
 
 			/**
 			 * @note: Extern lock_file declared in common.h, defined in main.c.
 			 * @todo: Move this to dedicated function.
 			 */
 			if (is_file(lock_file)) {
-				unlink(lock_file);
+				fprintf(stdout, "[%zu] Removing lock file %s\n", pid, lock_file);
+
+				if (is_error(unlink(lock_file))) {
+					fprintf(stdout, "[%zu] Unable to remove lock file %s\n", pid, lock_file);
+				}
+			} else {
+				fprintf(stdout, "[%zu] Unable to locate lock file %s\n", pid, lock_file);
 			}
 
-			break;
+			fflush(stdout);
+
+			exit(EXIT_SUCCESS);
 		case SIGINT:
-			fprintf(stdout, "Caught SIGINT, terminating...\n");
+			fprintf(stdout, "[%zu] Caught SIGINT. Running cleanup tasks before shutdown.\n", getpid());
 
 			/**
 			 * @note: Extern lock_file declared in common.h, defined in main.c.
 			 * @todo: Move this to dedicated function.
 			 */
 			if (is_file(lock_file)) {
-				unlink(lock_file);
+				fprintf(stdout, "[%zu] Removing lock file %s\n", pid, lock_file);
+
+				if (is_error(unlink(lock_file))) {
+					fprintf(stdout, "[%zu] Unable to remove lock file %s\n", pid, lock_file);
+				}
+			} else {
+				fprintf(stdout, "[%zu] Unable to locate lock file %s\n", pid, lock_file);
 			}
+
+			fflush(stdout);
 
 			exit(EXIT_SUCCESS);
 		default:
 			fprintf(stderr, "Caught wrong signal: %d\n", signal);
+
 			return;
 	}
 }
