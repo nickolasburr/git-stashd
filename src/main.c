@@ -19,7 +19,6 @@ int main (int argc, char **argv) {
 	    lock_err,
 	    lock_fp_err,
 	    log_fp_err,
-	    log_rw_err,
 	    init_err,
 	    arg_index,
 	    opt_index,
@@ -33,7 +32,6 @@ int main (int argc, char **argv) {
 	char path_buf[PATH_MAX],
 	     git_dir[PATH_MAX],
 	     home_dir[PATH_MAX],
-	     lock_file[PATH_MAX],
 	     log_dir[PATH_MAX],
 	     log_realpath[PATH_MAX],
 	     s_interval[4],
@@ -295,7 +293,7 @@ int main (int argc, char **argv) {
 		lock_err_msg = ALLOC(sizeof(char) * ((length(lock_err_fmt) + NULL_BYTE) + (length(path) + NULL_BYTE)));
 		sprintf(lock_err_msg, lock_err_fmt, path);
 
-		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, lock_err_msg);
+		write_to_stdout(lock_err_msg);
 		FREE(lock_err_msg);
 
 		exit(EXIT_FAILURE);
@@ -397,7 +395,7 @@ int main (int argc, char **argv) {
 			/**
 			 * Output max entries message to log file.
 			 */
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, max_ent_info_msg);
+			write_to_stdout(max_ent_info_msg);
 			FREE(max_ent_info_msg);
 
 			break;
@@ -422,7 +420,7 @@ int main (int argc, char **argv) {
 		/**
 		 * Write informational message to log file.
 		 */
-		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, log_info_msg);
+		write_to_stdout(log_info_msg);
 		FREE(log_info_msg);
 
 		/**
@@ -436,7 +434,7 @@ int main (int argc, char **argv) {
 			wt_err_msg = ALLOC(sizeof(char) * ((length(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE)));
 			sprintf(wt_err_msg, GIT_STASHD_CHECK_INDEX_STATUS_ERROR);
 
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, wt_err_msg);
+			write_to_stdout(wt_err_msg);
 			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -454,7 +452,7 @@ int main (int argc, char **argv) {
 			ds_err_msg = ALLOC(sizeof(char) * (length(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR)));
 			sprintf(ds_err_msg, GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR);
 
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ds_err_msg);
+			write_to_stdout(ds_err_msg);
 			FREE(ds_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -481,7 +479,7 @@ int main (int argc, char **argv) {
 				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
-					write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
+					write_to_stdout(GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
 
 					exit(EXIT_FAILURE);
 				}
@@ -489,7 +487,7 @@ int main (int argc, char **argv) {
 				ae_info_msg = ALLOC(sizeof(char) * ((length(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)));
 				sprintf(ae_info_msg, GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY);
 
-				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ae_info_msg);
+				write_to_stdout(ae_info_msg);
 				FREE(ae_info_msg);
 
 				/**
@@ -503,11 +501,11 @@ int main (int argc, char **argv) {
 				ee_err_msg = ALLOC(sizeof(char) * ((length(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
-				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ee_err_msg);
+				write_to_stdout(ee_err_msg);
 				FREE(ee_err_msg);
 			}
 		} else {
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_WORKTREE_CLEAN_NO_ACTION);
+			write_to_stdout(GIT_STASHD_WORKTREE_CLEAN_NO_ACTION);
 		}
 
 		/**
