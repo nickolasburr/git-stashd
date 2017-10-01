@@ -24,9 +24,11 @@
 
 #define _GNU_SOURCE
 #define NULL_BYTE 1
+#define NULL_DEVICE "/dev/null"
 #define NOT_FOUND -1
 #define ERR_CATCH -2
 
+extern char lock_file[PATH_MAX];
 extern char log_path[PATH_MAX];
 
 #endif /* GIT_STASHD_COMMON_H */

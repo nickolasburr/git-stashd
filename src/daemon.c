@@ -52,7 +52,7 @@ void daemonize (void) {
 	/**
 	 * @note extern log_path declared in common.h, defined in main.c.
 	 */
-	stdin  = fopen("/dev/null", "r");
+	stdin  = fopen(NULL_DEVICE, "r");
 	stdout = fopen(log_path, GIT_STASHD_LOG_MODE);
 	stderr = fopen(log_path, GIT_STASHD_LOG_MODE);
 }
@@ -68,10 +68,10 @@ void touch_file (int *error, char *filename, const char *filemode) {
 
 	/**
 	 * Remove trailing slash from path, if present.
-	 * e.g. /var/log/alternate.log/
+	 * e.g. $HOME/alternate.log/ -> $HOME/alternate.log
 	 */
-	if (filename[strlen(filename) - 1] == '/') {
-		filename[strlen(filename) - 1] = 0;
+	if (filename[length(filename) - 1] == '/') {
+		filename[length(filename) - 1] = 0;
 	}
 
 	fp = get_file(&fp_err, filename, filemode);
@@ -86,20 +86,14 @@ void touch_file (int *error, char *filename, const char *filemode) {
 /**
  * Write to log file.
  */
-void write_to_log (int *error, const char *filename, const char *filemode, const char *message) {
-	int fp_err;
-	FILE *fp;
+void write_to_stdout (const char *message) {
 	pid_t pid = getpid();
 
-	*error = 0;
+	fprintf(stdout, "[%zu] %s\n", pid, message);
 
-	fp = get_file(&fp_err, filename, filemode);
-
-	if (fp_err) {
-		*error = 1;
-	} else {
-		fprintf(fp, "[%zu] %s\n", pid, message);
-	}
-
-	fclose(fp);
+	/**
+	 * To prevent buffer data from lingering in
+	 * daemon processes, manually flush stdout.
+	 */
+	fflush(stdout);
 }

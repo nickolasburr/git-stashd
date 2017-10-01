@@ -19,7 +19,7 @@ int has_coequal_entry (int *error, const char *path, struct git_stashd_stash *s)
 		int coequal_status;
 		char *diff_stash_cmd;
 
-		diff_stash_cmd = ALLOC(sizeof(char) * ((strlen(diff_stash_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (sizeof(int) + 1)));
+		diff_stash_cmd = ALLOC(sizeof(char) * ((length(diff_stash_fmt) + NULL_BYTE) + (length(path) + NULL_BYTE) + (sizeof(int) + 1)));
 		sprintf(diff_stash_cmd, diff_stash_fmt, path, index);
 
 		/**
@@ -57,7 +57,7 @@ char *get_sha_by_index (int *error, const char *path, char *sha_buf, int index) 
 	 * create formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	show_entry_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+	show_entry_cmd = ALLOC(sizeof(char) * ((length(format) + NULL_BYTE) + (length(path) + NULL_BYTE)));
 	sprintf(show_entry_cmd, format, path, index);
 
 	fp = open_pipe(&fp_err, show_entry_cmd, "r");
@@ -93,7 +93,7 @@ char *get_current_branch (int *error, const char *path, char *ref_buf) {
 
 	*error = 0;
 
-	current_branch_cmd = ALLOC(sizeof(char) * ((strlen(format) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+	current_branch_cmd = ALLOC(sizeof(char) * ((length(format) + NULL_BYTE) + (length(path) + NULL_BYTE)));
 	sprintf(current_branch_cmd, format, path);
 
 	fp = open_pipe(&fp_err, current_branch_cmd, "r");
@@ -152,13 +152,13 @@ void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) 
 		return;
 	}
 
-	entry_msg = ALLOC(sizeof(char) * ((strlen(mformat) + NULL_BYTE) + (strlen(ref_buf) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+	entry_msg = ALLOC(sizeof(char) * ((length(mformat) + NULL_BYTE) + (length(ref_buf) + NULL_BYTE) + (length(ts_buf) + NULL_BYTE)));
 	sprintf(entry_msg, mformat, ref_buf, ts_buf);
 
 	/**
 	 * Allocate space for `create_cmd`.
 	 */
-	create_cmd = ALLOC(sizeof(char) * ((strlen(cformat) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE)));
+	create_cmd = ALLOC(sizeof(char) * ((length(cformat) + NULL_BYTE) + (length(path) + NULL_BYTE) + (length(entry_msg) + NULL_BYTE)));
 	sprintf(create_cmd, cformat, path, entry_msg);
 
 	fp = open_pipe(&fp_err, create_cmd, "r");
@@ -176,7 +176,7 @@ void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) 
 		copy(sha_buf, line);
 	}
 
-	store_cmd = ALLOC(sizeof(char) * ((strlen(sformat) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(entry_msg) + NULL_BYTE) + (strlen(sha_buf) + NULL_BYTE)));
+	store_cmd = ALLOC(sizeof(char) * ((length(sformat) + NULL_BYTE) + (length(path) + NULL_BYTE) + (length(entry_msg) + NULL_BYTE) + (length(sha_buf) + NULL_BYTE)));
 	sprintf(store_cmd, sformat, path, entry_msg, sha_buf);
 
 	/**
@@ -253,7 +253,7 @@ char *get_git_dir (int *error, const char *path) {
 
 	*error = 0;
 
-	git_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(git_dir_fmt) + NULL_BYTE)));
+	git_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(git_dir_fmt) + NULL_BYTE)));
 	sprintf(git_dir_cmd, git_dir_fmt, path);
 
 	fp = open_pipe(&fp_err, git_dir_cmd, "r");
@@ -273,7 +273,7 @@ char *get_git_dir (int *error, const char *path) {
 	 */
 	fflush(fp);
 
-	top_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(top_dir_fmt) + NULL_BYTE)));
+	top_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(top_dir_fmt) + NULL_BYTE)));
 	sprintf(top_dir_cmd, top_dir_fmt, path);
 
 	fp = open_pipe(&fp_err, top_dir_cmd, "r");
@@ -328,7 +328,7 @@ int has_lock (int *error, const char *path) {
 
 	*error = 0;
 
-	git_dir_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(git_dir_fmt) + NULL_BYTE)));
+	git_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(git_dir_fmt) + NULL_BYTE)));
 	sprintf(git_dir_cmd, git_dir_fmt, path);
 
 	fp = open_pipe(&fp_err, git_dir_cmd, "r");
@@ -389,10 +389,10 @@ int is_worktree_dirty (int *error, const char *path) {
 	 * Allocate space for `diff_index_cmd`, `update_index_cmd`,
 	 * format both strings for use with `system` builtin.
 	 */
-	diff_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(diff_index_fmt) + NULL_BYTE)));
+	diff_index_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(diff_index_fmt) + NULL_BYTE)));
 	sprintf(diff_index_cmd, diff_index_fmt, path);
 
-	update_index_cmd = ALLOC(sizeof(char) * ((strlen(path) + NULL_BYTE) + (strlen(update_index_fmt) + NULL_BYTE)));
+	update_index_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(update_index_fmt) + NULL_BYTE)));
 	sprintf(update_index_cmd, update_index_fmt, path);
 
 	/**

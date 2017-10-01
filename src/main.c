@@ -7,8 +7,9 @@
 #include "main.h"
 
 /**
- * @note extern log_path declared in common.h.
+ * @note: Externs lock_file, log_path declared in common.h.
  */
+char lock_file[PATH_MAX];
 char log_path[PATH_MAX];
 
 int main (int argc, char **argv) {
@@ -18,7 +19,6 @@ int main (int argc, char **argv) {
 	    lock_err,
 	    lock_fp_err,
 	    log_fp_err,
-	    log_rw_err,
 	    init_err,
 	    arg_index,
 	    opt_index,
@@ -32,7 +32,6 @@ int main (int argc, char **argv) {
 	char path_buf[PATH_MAX],
 	     git_dir[PATH_MAX],
 	     home_dir[PATH_MAX],
-	     lock_file[PATH_MAX],
 	     log_dir[PATH_MAX],
 	     log_realpath[PATH_MAX],
 	     s_interval[4],
@@ -291,15 +290,18 @@ int main (int argc, char **argv) {
 	if (has_lock(&lock_err, path)) {
 		char *lock_err_msg, *lock_err_fmt = "Unable to create lock file in %s. File exists.";
 
-		lock_err_msg = ALLOC(sizeof(char) * ((strlen(lock_err_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+		lock_err_msg = ALLOC(sizeof(char) * ((length(lock_err_fmt) + NULL_BYTE) + (length(path) + NULL_BYTE)));
 		sprintf(lock_err_msg, lock_err_fmt, path);
 
-		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, lock_err_msg);
+		write_to_stdout(lock_err_msg);
 		FREE(lock_err_msg);
 
 		exit(EXIT_FAILURE);
 	}
 
+	/**
+	 * Get absolute path to repository .git directory.
+	 */
 	copy(git_dir, get_git_dir(&git_dir_err, path));
 
 	/**
@@ -310,7 +312,7 @@ int main (int argc, char **argv) {
 	concat(lock_file, GIT_STASHD_LOCK_FILE);
 
 	/**
-	 * @todo: Create stashd.lock file.
+	 * Create stashd.lock file.
 	 */
 	touch_file(&lock_fp_err, lock_file, GIT_STASHD_LOCK_MODE);
 
@@ -387,13 +389,13 @@ int main (int argc, char **argv) {
 			char *max_ent_info_msg,
 			     *max_ent_info_fmt = "Reached max entries of %d in %s, exiting...";
 
-			max_ent_info_msg = ALLOC(sizeof(char) * ((strlen(max_ent_info_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE) + (strlen(path) + NULL_BYTE)));
+			max_ent_info_msg = ALLOC(sizeof(char) * ((length(max_ent_info_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE) + (length(path) + NULL_BYTE)));
 			sprintf(max_ent_info_msg, max_ent_info_fmt, max_entries, path);
 
 			/**
 			 * Output max entries message to log file.
 			 */
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, max_ent_info_msg);
+			write_to_stdout(max_ent_info_msg);
 			FREE(max_ent_info_msg);
 
 			break;
@@ -412,13 +414,13 @@ int main (int argc, char **argv) {
 		 */
 		get_timestamp(ts_buf);
 
-		log_info_msg = ALLOC(sizeof(char) * ((strlen(log_info_fmt) + NULL_BYTE) + (strlen(path) + NULL_BYTE) + (strlen(ts_buf) + NULL_BYTE)));
+		log_info_msg = ALLOC(sizeof(char) * ((length(log_info_fmt) + NULL_BYTE) + (length(path) + NULL_BYTE) + (length(ts_buf) + NULL_BYTE)));
 		sprintf(log_info_msg, log_info_fmt, path, ts_buf);
 
 		/**
 		 * Write informational message to log file.
 		 */
-		write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, log_info_msg);
+		write_to_stdout(log_info_msg);
 		FREE(log_info_msg);
 
 		/**
@@ -429,10 +431,10 @@ int main (int argc, char **argv) {
 		if (wt_err) {
 			char *wt_err_msg;
 
-			wt_err_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE)));
+			wt_err_msg = ALLOC(sizeof(char) * ((length(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE)));
 			sprintf(wt_err_msg, GIT_STASHD_CHECK_INDEX_STATUS_ERROR);
 
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, wt_err_msg);
+			write_to_stdout(wt_err_msg);
 			FREE(wt_err_msg);
 
 			exit(EXIT_FAILURE);
@@ -447,18 +449,18 @@ int main (int argc, char **argv) {
 		if (ds_err) {
 			char *ds_err_msg;
 
-			ds_err_msg = ALLOC(sizeof(char) * (strlen(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR)));
+			ds_err_msg = ALLOC(sizeof(char) * (length(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR)));
 			sprintf(ds_err_msg, GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR);
 
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ds_err_msg);
+			write_to_stdout(ds_err_msg);
 			FREE(ds_err_msg);
 
 			exit(EXIT_FAILURE);
 		}
 
 		/**
-		 * @note Use of is_error here might be a bit of an abuse.
-		 *       Consider refactoring this to be more explicit.
+		 * @note: Use of is_error here might be a bit of an abuse.
+		 *        Consider refactoring this to be more explicit.
 		 */
 		has_entry = !is_error(entry_status);
 
@@ -477,15 +479,15 @@ int main (int argc, char **argv) {
 				add_stash_entry(&ae_err, path, stash);
 
 				if (ae_err) {
-					write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
+					write_to_stdout(GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
 
 					exit(EXIT_FAILURE);
 				}
 
-				ae_info_msg = ALLOC(sizeof(char) * ((strlen(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)));
+				ae_info_msg = ALLOC(sizeof(char) * ((length(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)));
 				sprintf(ae_info_msg, GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY);
 
-				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ae_info_msg);
+				write_to_stdout(ae_info_msg);
 				FREE(ae_info_msg);
 
 				/**
@@ -496,14 +498,14 @@ int main (int argc, char **argv) {
 				char *ee_err_msg,
 				     *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
 
-				ee_err_msg = ALLOC(sizeof(char) * ((strlen(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
+				ee_err_msg = ALLOC(sizeof(char) * ((length(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
 
-				write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, ee_err_msg);
+				write_to_stdout(ee_err_msg);
 				FREE(ee_err_msg);
 			}
 		} else {
-			write_to_log(&log_rw_err, log_path, GIT_STASHD_LOG_MODE, GIT_STASHD_WORKTREE_CLEAN_NO_ACTION);
+			write_to_stdout(GIT_STASHD_WORKTREE_CLEAN_NO_ACTION);
 		}
 
 		/**
