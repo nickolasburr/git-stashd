@@ -113,6 +113,15 @@ int main (int argc, char **argv) {
 		}
 
 		interval = atoi(s_interval);
+
+		/**
+		 * Enforce strict lower bound of 10 seconds.
+		 */
+		if (interval < 10) {
+			fprintf(stderr, "--interval: To prevent overload, interval must be >= 10.\n");
+
+			exit(EXIT_FAILURE);
+		}
 	} else {
 		interval = GIT_STASHD_INTERVAL;
 	}
