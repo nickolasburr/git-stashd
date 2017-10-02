@@ -10,47 +10,59 @@
  * Run cleanup on SIGHUP or SIGINT.
  */
 void on_signal (int signal) {
+	/**
+	 * @note: If we decide to use SIGHUP for an alternate purpose (e.g. reload config)
+	 *        we can use queue for handling pending signals that need to be processed.
+	 */
 	sigset_t queue;
 	pid_t pid = getpid();
 
 	switch (signal) {
 		case SIGHUP:
-			fprintf(stdout, "[%zu] Caught SIGHUP. Running cleanup tasks before shutdown.\n", pid);
+			fprintf(stdout, "[%zu] Caught SIGHUP. Running cleanup tasks before exiting.\n", pid);
 
 			/**
 			 * @note: Extern lock_file declared in common.h, defined in main.c.
-			 * @todo: Move this to dedicated function.
 			 */
 			if (is_file(lock_file)) {
-				fprintf(stdout, "[%zu] Removing lock file %s\n", pid, lock_file);
+				fprintf(stdout, "[%zu] --> Removing lock file %s\n", pid, lock_file);
 
 				if (is_error(unlink(lock_file))) {
-					fprintf(stdout, "[%zu] Unable to remove lock file %s\n", pid, lock_file);
+					fprintf(stdout, "[%zu] --> Unable to remove lock file %s\n", pid, lock_file);
 				}
 			} else {
-				fprintf(stdout, "[%zu] Unable to locate lock file %s\n", pid, lock_file);
+				fprintf(stdout, "[%zu] --> Unable to locate lock file %s\n", pid, lock_file);
 			}
 
+			fprintf(stdout, "[%zu] Cleanup complete. Exiting...\n", pid);
+
+			/**
+			 * Manually flush stdout.
+			 */
 			fflush(stdout);
 
 			exit(EXIT_SUCCESS);
 		case SIGINT:
-			fprintf(stdout, "[%zu] Caught SIGINT. Running cleanup tasks before shutdown.\n", getpid());
+			fprintf(stdout, "[%zu] Caught SIGINT. Running cleanup tasks before exiting.\n", pid);
 
 			/**
 			 * @note: Extern lock_file declared in common.h, defined in main.c.
-			 * @todo: Move this to dedicated function.
 			 */
 			if (is_file(lock_file)) {
-				fprintf(stdout, "[%zu] Removing lock file %s\n", pid, lock_file);
+				fprintf(stdout, "[%zu] --> Removing lock file %s\n", pid, lock_file);
 
 				if (is_error(unlink(lock_file))) {
-					fprintf(stdout, "[%zu] Unable to remove lock file %s\n", pid, lock_file);
+					fprintf(stdout, "[%zu] --> Unable to remove lock file %s\n", pid, lock_file);
 				}
 			} else {
-				fprintf(stdout, "[%zu] Unable to locate lock file %s\n", pid, lock_file);
+				fprintf(stdout, "[%zu] --> Unable to locate lock file %s\n", pid, lock_file);
 			}
 
+			fprintf(stdout, "[%zu] Cleanup complete. Exiting...\n", pid);
+
+			/**
+			 * Manually flush stdout.
+			 */
 			fflush(stdout);
 
 			exit(EXIT_SUCCESS);
