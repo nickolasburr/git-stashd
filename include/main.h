@@ -19,4 +19,6 @@
 #include "git2/types.h"
 #include "git2/stash.h"
 
+#define GIT_STASHD_VERSION "1.0.2"
+
 #endif /* GIT_STASHD_MAIN_H */
