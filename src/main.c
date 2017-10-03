@@ -49,6 +49,24 @@ int main (int argc, char **argv) {
 	struct sigaction action;
 
 	/**
+	 * If --help option was given, display usage details and exit.
+	 */
+	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
+		usage();
+	}
+
+	/**
+	 * If --version option was given, display version number and exit.
+	 */
+	if (in_array(GIT_STASHD_OPT_VERSION_L, argv, argc) ||
+	    in_array(GIT_STASHD_OPT_VERSION_S, argv, argc)) {
+		fprintf(stdout, "%s\n", GIT_STASHD_VERSION);
+
+		exit(EXIT_SUCCESS);
+	}
+
+	/**
 	 * Initialize libgit2
 	 */
 	git_libgit2_init();
@@ -67,14 +85,6 @@ int main (int argc, char **argv) {
 	 * Get $HOME directory for user.
 	 */
 	copy(home_dir, getenv("HOME"));
-
-	/**
-	 * If the `--help` option was given, display usage details and exit.
-	 */
-	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
-	    in_array(GIT_STASHD_OPT_HELP_S, argv, argc)) {
-		usage();
-	}
 
 	/**
 	 * Check if `--foreground` option was given. This will determine
