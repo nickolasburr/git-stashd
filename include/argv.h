@@ -28,7 +28,11 @@
 #define GIT_STASHD_OPT_PATH_S "-P"
 #define GIT_STASHD_OPT_VERSION_L "--version"
 #define GIT_STASHD_OPT_VERSION_S "-V"
+#define GIT_STASHD_NUM_OPT_COUNT 14
 
+static char *options[GIT_STASHD_NUM_OPT_COUNT];
+
+int has_bad_opts(char **, int);
 void usage(void);
 
 #endif /* GIT_STASHD_ARGV_H */

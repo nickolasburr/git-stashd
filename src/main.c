@@ -49,6 +49,15 @@ int main (int argc, char **argv) {
 	struct sigaction action;
 
 	/**
+	 * Catch bad options and display an error.
+	 */
+	if (has_bad_opts(argv, argc)) {
+		fprintf(stdout, "Invalid options given\n");
+
+		exit(EXIT_FAILURE);
+	}
+
+	/**
 	 * If --help option was given, display usage details and exit.
 	 */
 	if (in_array(GIT_STASHD_OPT_HELP_L, argv, argc) ||
