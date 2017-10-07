@@ -8,12 +8,12 @@
 
 ## Installation
 
-You can install `git-stashd` via Homebrew or manually. See the [tap repository](https://github.com/nickolasburr/homebrew-git-stashd) for tap-specific information.
+You can install `git-stashd` via Homebrew or manually. See the [tap repository](https://github.com/nickolasburr/homebrew-pfa) for tap-specific information.
 
 ### Homebrew
 
 ```shell
-brew tap nickolasburr/git-stashd
+brew tap nickolasburr/pfa
 brew install git-stashd
 ```
 
