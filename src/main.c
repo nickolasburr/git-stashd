@@ -53,7 +53,6 @@ int main (int argc, char **argv) {
 	 */
 	if (has_bad_opts(argv, argc)) {
 		fprintf(stdout, "Invalid options given\n");
-
 		exit(EXIT_FAILURE);
 	}
 
@@ -71,7 +70,6 @@ int main (int argc, char **argv) {
 	if (in_array(GIT_STASHD_OPT_VERSION_L, argv, argc) ||
 	    in_array(GIT_STASHD_OPT_VERSION_S, argv, argc)) {
 		fprintf(stdout, "%s\n", GIT_STASHD_VERSION);
-
 		exit(EXIT_SUCCESS);
 	}
 
@@ -116,7 +114,6 @@ int main (int argc, char **argv) {
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
 			fprintf(stderr, "--interval: Missing argument\n");
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -127,7 +124,6 @@ int main (int argc, char **argv) {
 		 */
 		if (!is_numeric(s_interval)) {
 			fprintf(stderr, "--interval: Invalid argument %s. Argument must be an integer.\n", s_interval);
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -138,7 +134,6 @@ int main (int argc, char **argv) {
 		 */
 		if (interval < 10) {
 			fprintf(stderr, "--interval: To prevent overload, interval must be >= 10.\n");
-
 			exit(EXIT_FAILURE);
 		}
 	} else {
@@ -157,7 +152,6 @@ int main (int argc, char **argv) {
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
 			fprintf(stderr, "--log-file: Missing argument\n");
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -177,7 +171,6 @@ int main (int argc, char **argv) {
 			 */
 			if (!is_writable(log_dir)) {
 				fprintf(stderr, "--log-file: %s is not writable.\n", log_dir);
-
 				exit(EXIT_FAILURE);
 			}
 
@@ -185,7 +178,6 @@ int main (int argc, char **argv) {
 
 			if (log_fp_err) {
 				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
-
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -207,7 +199,6 @@ int main (int argc, char **argv) {
 			 */
 			if (!is_writable(home_dir)) {
 				fprintf(stderr, "--log-file: %s is not writable.\n", home_dir);
-
 				exit(EXIT_FAILURE);
 			}
 
@@ -215,7 +206,6 @@ int main (int argc, char **argv) {
 
 			if (log_fp_err) {
 				fprintf(stderr, "--log-file: Could not create %s\n", log_path);
-
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -234,7 +224,6 @@ int main (int argc, char **argv) {
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
 			fprintf(stderr, "--max-entries: Missing argument\n");
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -245,7 +234,6 @@ int main (int argc, char **argv) {
 		 */
 		if (!is_numeric(s_max_entries)) {
 			fprintf(stderr, "--max-entries: Invalid argument %s. Argument must be an integer.\n", s_max_entries);
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -267,7 +255,6 @@ int main (int argc, char **argv) {
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
 			fprintf(stderr, "--path: Missing pathname argument\n");
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -277,7 +264,6 @@ int main (int argc, char **argv) {
 		 */
 		if (!is_dir(argv[arg_index])) {
 			fprintf(stderr, "--path: Invalid path %s\n", argv[arg_index]);
-
 			exit(EXIT_FAILURE);
 		}
 
@@ -285,7 +271,6 @@ int main (int argc, char **argv) {
 
 		if (is_null(path)) {
 			fprintf(stderr, "--path: Unable to access %s\n", argv[arg_index]);
-
 			exit(EXIT_FAILURE);
 		}
 	} else {
@@ -297,7 +282,6 @@ int main (int argc, char **argv) {
 
 		if (is_null(path)) {
 			fprintf(stderr, "--path: Unable to get current working directory\n");
-
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -307,7 +291,6 @@ int main (int argc, char **argv) {
 	 */
 	if (git_repository_open(&repo, path)) {
 		fprintf(stderr, "Unable to locate repository at %s. Please verify it is a Git repository and you have sufficient permissions.\n", path);
-
 		exit(EXIT_FAILURE);
 	}
 
@@ -508,7 +491,6 @@ int main (int argc, char **argv) {
 
 				if (ae_err) {
 					write_to_stdout(GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR);
-
 					exit(EXIT_FAILURE);
 				}
 
@@ -524,7 +506,7 @@ int main (int argc, char **argv) {
 				stash->length++;
 			} else {
 				char *ee_err_msg,
-				     *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Not adding duplicate entry.";
+				     *ee_err_fmt = "--> Worktree is dirty, found equivalent entry at stash@{%d}. Skipping...";
 
 				ee_err_msg = ALLOC(sizeof(char) * ((length(ee_err_fmt) + NULL_BYTE) + (sizeof(int) + NULL_BYTE)));
 				sprintf(ee_err_msg, ee_err_fmt, entry_status);
@@ -556,7 +538,6 @@ int main (int argc, char **argv) {
 
 	FREE(stash->repository);
 	FREE(stash);
-
 	git_repository_free(repo);
 
 	return EXIT_SUCCESS;
