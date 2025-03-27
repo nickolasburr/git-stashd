@@ -71,7 +71,7 @@ Options
                             <span>-M, --max-entries [NUM]</span>
                         </kbd>
                     </td>
-                    <td>Maximum number of entries a stash should hold. Once the threshold has been met, the daemon will exit.</td>
+                    <td>Maximum number of entries a stash should hold<sup>&#8224;</sup></td>
                 </tr>
                 <tr>
                     <td>
@@ -123,3 +123,8 @@ Start daemon in foreground for repository ``~/projects/example`` with an interva
 .. code-block:: sh
 
    git stashd --foreground --path ~/projects/example --interval 300
+
+Footnotes
+---------
+
+When ``--max-entries`` threshold is met, the daemon will exit.
