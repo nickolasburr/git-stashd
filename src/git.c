@@ -9,7 +9,11 @@
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */
-int has_coequal_entry (int *error, const char *path, struct git_stashd_stash *s) {
+int has_coequal_entry (
+	int *error,
+	const char *path,
+	struct git_stashd_stash *s
+) {
 	int index;
 	static const char *diff_stash_fmt = "/usr/bin/git -C %s diff --quiet --exit-code stash@{%d}";
 
@@ -19,14 +23,27 @@ int has_coequal_entry (int *error, const char *path, struct git_stashd_stash *s)
 		int coequal_status;
 		char *diff_stash_cmd;
 
-		diff_stash_cmd = ALLOC(sizeof(char) * ((length(diff_stash_fmt) + NULL_BYTE) + (length(path) + NULL_BYTE) + (sizeof(int) + 1)));
-		sprintf(diff_stash_cmd, diff_stash_fmt, path, index);
+		diff_stash_cmd = ALLOC(
+			sizeof(char) * (
+				(length(diff_stash_fmt) + NULL_BYTE) +
+				(length(path) + NULL_BYTE) +
+				(sizeof(int) + 1)
+			)
+		);
+		sprintf(
+			diff_stash_cmd,
+			diff_stash_fmt,
+			path,
+			index
+		);
+
+		coequal_status = system(diff_stash_cmd);
 
 		/**
 		 * Use `git-diff` to check if if the entry
 		 * diff is equivalent to the worktree diff.
 		 */
-		if ((coequal_status = system(diff_stash_cmd)) == -1) {
+		if (coequal_status == -1) {
 			*error = 1;
 		}
 
@@ -43,7 +60,12 @@ int has_coequal_entry (int *error, const char *path, struct git_stashd_stash *s)
 	return -1;
 }
 
-char *get_sha_by_index (int *error, const char *path, char *sha_buf, int index) {
+char *get_sha_by_index (
+	int *error,
+	const char *path,
+	char *sha_buf,
+	int index
+) {
 	FILE *fp;
 	int fp_err;
 	static const char *format = "/usr/bin/git -C %s show --no-patch --format='%%H' stash@{%d}";
@@ -57,8 +79,18 @@ char *get_sha_by_index (int *error, const char *path, char *sha_buf, int index) 
 	 * create formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	show_entry_cmd = ALLOC(sizeof(char) * ((length(format) + NULL_BYTE) + (length(path) + NULL_BYTE)));
-	sprintf(show_entry_cmd, format, path, index);
+	show_entry_cmd = ALLOC(
+		sizeof(char) * (
+			(length(format) + NULL_BYTE) +
+			(length(path) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		show_entry_cmd,
+		format,
+		path,
+		index
+	);
 
 	fp = open_pipe(&fp_err, show_entry_cmd, "r");
 
@@ -71,7 +103,6 @@ char *get_sha_by_index (int *error, const char *path, char *sha_buf, int index) 
 
 	while (!is_null(fgets(line, GIT_STASHD_SHA_LENGTH_MAX, fp))) {
 		line[strcspn(line, "\r\n")] = 0;
-
 		copy(sha_buf, line);
 	}
 
@@ -93,21 +124,32 @@ char *get_current_branch (int *error, const char *path, char *ref_buf) {
 
 	*error = 0;
 
-	current_branch_cmd = ALLOC(sizeof(char) * ((length(format) + NULL_BYTE) + (length(path) + NULL_BYTE)));
-	sprintf(current_branch_cmd, format, path);
+	current_branch_cmd = ALLOC(
+		sizeof(char) * (
+			(length(format) + NULL_BYTE) +
+			(length(path) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		current_branch_cmd,
+		format,
+		path
+	);
 
-	fp = open_pipe(&fp_err, current_branch_cmd, "r");
+	fp = open_pipe(
+		&fp_err,
+		current_branch_cmd,
+		"r"
+	);
 
 	if (fp_err) {
 		close_pipe(fp);
 		*error = 1;
-
 		return ref_buf;
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_REF_LENGTH_MAX, fp))) {
 		line[strcspn(line, "\r\n")] = 0;
-
 		copy(ref_buf, line);
 	}
 
@@ -122,7 +164,11 @@ char *get_current_branch (int *error, const char *path, char *ref_buf) {
  *
  * @todo: Use libgit2 for creating/applying stash entry.
  */
-void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) {
+void add_stash_entry (
+	int *error,
+	const char *path,
+	struct git_stashd_stash *s
+) {
 	FILE *fp;
 	int entry_status,
 	    fp_err,
@@ -148,43 +194,81 @@ void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) 
 
 	if (ref_error) {
 		*error = 1;
-
 		return;
 	}
 
-	entry_msg = ALLOC(sizeof(char) * ((length(mformat) + NULL_BYTE) + (length(ref_buf) + NULL_BYTE) + (length(ts_buf) + NULL_BYTE)));
-	sprintf(entry_msg, mformat, ref_buf, ts_buf);
+	entry_msg = ALLOC(
+		sizeof(char) * (
+			(length(mformat) + NULL_BYTE) +
+			(length(ref_buf) + NULL_BYTE) +
+			(length(ts_buf) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		entry_msg,
+		mformat,
+		ref_buf,
+		ts_buf
+	);
 
 	/**
 	 * Allocate space for `create_cmd`.
 	 */
-	create_cmd = ALLOC(sizeof(char) * ((length(cformat) + NULL_BYTE) + (length(path) + NULL_BYTE) + (length(entry_msg) + NULL_BYTE)));
-	sprintf(create_cmd, cformat, path, entry_msg);
+	create_cmd = ALLOC(
+		sizeof(char) * (
+			(length(cformat) + NULL_BYTE) +
+			(length(path) + NULL_BYTE) +
+			(length(entry_msg) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		create_cmd,
+		cformat,
+		path,
+		entry_msg
+	);
 
-	fp = open_pipe(&fp_err, create_cmd, "r");
+	fp = open_pipe(
+		&fp_err,
+		create_cmd,
+		"r"
+	);
 
 	if (fp_err) {
 		close_pipe(fp);
 		*error = 1;
-
 		return;
 	}
 
 	while (!is_null(fgets(line, GIT_STASHD_SHA_LENGTH_MAX, fp))) {
 		line[strcspn(line, "\r\n")] = 0;
-
 		copy(sha_buf, line);
 	}
 
-	store_cmd = ALLOC(sizeof(char) * ((length(sformat) + NULL_BYTE) + (length(path) + NULL_BYTE) + (length(entry_msg) + NULL_BYTE) + (length(sha_buf) + NULL_BYTE)));
-	sprintf(store_cmd, sformat, path, entry_msg, sha_buf);
+	store_cmd = ALLOC(
+		sizeof(char) * (
+			(length(sformat) + NULL_BYTE) +
+			(length(path) + NULL_BYTE) +
+			(length(entry_msg) + NULL_BYTE) +
+			(length(sha_buf) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		store_cmd,
+		sformat,
+		path,
+		entry_msg,
+		sha_buf
+	);
+
+	entry_status = system(store_cmd);
 
 	/**
 	 * @todo: Use libgit2 instead of system call.
 	 *
 	 * If it was a non-zero exit, set the error marker.
 	 */
-	if (is_error((entry_status = system(store_cmd)))) {
+	if (entry_status == -1) {
 		*error = 1;
 	}
 
@@ -197,35 +281,57 @@ void add_stash_entry (int *error, const char *path, struct git_stashd_stash *s) 
 /**
  * Callback function for libgit2 `git_stash_foreach`. Used solely for calculating stash length.
  */
-git_stash_cb *init_setup (size_t index, const char *message, const git_oid *stash_id, void *payload) {
+git_stash_cb *init_setup (
+	size_t index,
+	const char *message,
+	const git_oid *stash_id,
+	void *payload
+) {
 	/**
 	 * Increment payload int pointer.
 	 */
 	(*(int*) payload)++;
-
 	return 0;
 }
 
 /**
  * Callback function for libgit2 `git_stash_foreach`. Initialize repository stash.
  */
-git_stash_cb *init_stash (size_t index, const char *message, const git_oid *stash_id, void *payload) {
+git_stash_cb *init_stash (
+	size_t index,
+	const char *message,
+	const git_oid *stash_id,
+	void *payload
+) {
 	int sha_err;
 	char sha_buf[GIT_STASHD_SHA_LENGTH_MAX];
 
 	/**
 	 * Retrieve the SHA1 hash for the stash entry.
 	 */
-	get_sha_by_index(&sha_err, ((struct git_stashd_stash *) payload)->repository->path, sha_buf, (int) index);
+	get_sha_by_index(
+		&sha_err,
+		((struct git_stashd_stash *) payload)->repository->path,
+		sha_buf,
+		(int) index
+	);
 
 	if (sha_err) {
-		fprintf(stderr, "Error encountered when calling get_sha_by_index\n");
-
+		fprintf(
+			stderr,
+			"Error encountered when calling get_sha_by_index\n"
+		);
 		exit(EXIT_FAILURE);
 	}
 
-	copy(((struct git_stashd_stash *) payload)->entries[index]->hash, sha_buf);
-	copy(((struct git_stashd_stash *) payload)->entries[index]->message, message);
+	copy(
+		((struct git_stashd_stash *) payload)->entries[index]->hash,
+		sha_buf
+	);
+	copy(
+		((struct git_stashd_stash *) payload)->entries[index]->message,
+		message
+	);
 
 	return 0;
 }
@@ -253,10 +359,23 @@ char *get_git_dir (int *error, const char *path) {
 
 	*error = 0;
 
-	git_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(git_dir_fmt) + NULL_BYTE)));
-	sprintf(git_dir_cmd, git_dir_fmt, path);
+	git_dir_cmd = ALLOC(
+		sizeof(char) * (
+			(length(path) + NULL_BYTE) +
+			(length(git_dir_fmt) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		git_dir_cmd,
+		git_dir_fmt,
+		path
+	);
 
-	fp = open_pipe(&fp_err, git_dir_cmd, "r");
+	fp = open_pipe(
+		&fp_err,
+		git_dir_cmd,
+		"r"
+	);
 
 	if (fp_err) {
 		goto on_error;
@@ -273,10 +392,23 @@ char *get_git_dir (int *error, const char *path) {
 	 */
 	fflush(fp);
 
-	top_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(top_dir_fmt) + NULL_BYTE)));
-	sprintf(top_dir_cmd, top_dir_fmt, path);
+	top_dir_cmd = ALLOC(
+		sizeof(char) * (
+			(length(path) + NULL_BYTE) +
+			(length(top_dir_fmt) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		top_dir_cmd,
+		top_dir_fmt,
+		path
+	);
 
-	fp = open_pipe(&fp_err, top_dir_cmd, "r");
+	fp = open_pipe(
+		&fp_err,
+		top_dir_cmd,
+		"r"
+	);
 
 	if (fp_err) {
 		goto on_error;
@@ -328,10 +460,23 @@ int has_lock (int *error, const char *path) {
 
 	*error = 0;
 
-	git_dir_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(git_dir_fmt) + NULL_BYTE)));
-	sprintf(git_dir_cmd, git_dir_fmt, path);
+	git_dir_cmd = ALLOC(
+		sizeof(char) * (
+			(length(path) + NULL_BYTE) +
+			(length(git_dir_fmt) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		git_dir_cmd,
+		git_dir_fmt,
+		path
+	);
 
-	fp = open_pipe(&fp_err, git_dir_cmd, "r");
+	fp = open_pipe(
+		&fp_err,
+		git_dir_cmd,
+		"r"
+	);
 
 	if (fp_err) {
 		goto on_error;
@@ -375,8 +520,10 @@ on_error:
  * @todo: Rebuild with libgit2 `git_diff_index_to_workdir`.
  */
 int is_worktree_dirty (int *error, const char *path) {
-	int index_status;
-	char *diff_index_cmd, *update_index_cmd;
+	int index_status,
+	    update_status;
+	char *diff_index_cmd,
+	     *update_index_cmd;
 	/**
 	 * @todo: These should be macros or static externs.
 	 */
@@ -386,40 +533,54 @@ int is_worktree_dirty (int *error, const char *path) {
 	*error = 0;
 
 	/**
-	 * Allocate space for `diff_index_cmd`, `update_index_cmd`,
-	 * format both strings for use with `system` builtin.
+	 * ALLOC for `diff_index_cmd`, `update_index_cmd`,
+	 * format strings for use with `system` builtin.
 	 */
-	diff_index_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(diff_index_fmt) + NULL_BYTE)));
-	sprintf(diff_index_cmd, diff_index_fmt, path);
+	diff_index_cmd = ALLOC(
+		sizeof(char) * (
+			(length(path) + NULL_BYTE) +
+			(length(diff_index_fmt) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		diff_index_cmd,
+		diff_index_fmt,
+		path
+	);
 
-	update_index_cmd = ALLOC(sizeof(char) * ((length(path) + NULL_BYTE) + (length(update_index_fmt) + NULL_BYTE)));
-	sprintf(update_index_cmd, update_index_fmt, path);
+	update_index_cmd = ALLOC(
+		sizeof(char) * (
+			(length(path) + NULL_BYTE) +
+			(length(update_index_fmt) + NULL_BYTE)
+		)
+	);
+	sprintf(
+		update_index_cmd,
+		update_index_fmt,
+		path
+	);
+
+	update_status = system(update_index_cmd);
 
 	/**
-	 * Refresh the index before checking state,
-	 * set error marker if an error occurred.
+	 * Refresh the index before checking state
 	 */
-	if (is_error(system(update_index_cmd))) {
+	if (update_status == -1) {
 		*error = 1;
 	}
 
+	index_status = system(diff_index_cmd);
+
 	/**
-	 * Get state information via `diff-index`,
-	 * set error marker if an error occurred.
+	 * Get state information via `diff-index`
 	 */
-	if (is_error((index_status = system(diff_index_cmd)))) {
+	if (index_status == -1) {
 		*error = 1;
 	}
 
-	/**
-	 * Deallocate space for `diff_index_cmd`, `update_index_cmd`.
-	 */
 	FREE(diff_index_cmd);
 	FREE(update_index_cmd);
 
-	/**
-	 * If there exists changes that could be staged.
-	 */
 	if (index_status) {
 		return 1;
 	}

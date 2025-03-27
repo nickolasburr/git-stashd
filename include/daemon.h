@@ -25,7 +25,7 @@
 #define GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY "--> Worktree is dirty, no equivalent entry. Adding new entry."
 
 void daemonize(void);
-void touch_file(int *, char *, const char *);
-void write_to_stdout(const char *);
+void ftouch(int *, char *, const char *);
+void flog(const char *);
 
 #endif /* GIT_STASHD_DAEMON_H */

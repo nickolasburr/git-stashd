@@ -10,6 +10,7 @@
 #include <signal.h>
 #include "common.h"
 #include "daemon.h"
+#include "error.h"
 #include "utils.h"
 
 void on_signal(int signal);

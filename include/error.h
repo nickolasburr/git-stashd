@@ -7,8 +7,6 @@
 #ifndef GIT_STASHD_ERROR_H
 #define GIT_STASHD_ERROR_H
 
-#include "common.h"
-
 int is_error(int);
 
 #endif /* GIT_STASHD_ERROR_H */

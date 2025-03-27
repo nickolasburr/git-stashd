@@ -8,7 +8,7 @@ LIB_DIR="$PROJ_DIR/lib"
 LG2_DIR="$LIB_DIR/libgit2"
 LG2_BUILD_DIR="$LG2_DIR/build"
 LG2_REPO="https://github.com/libgit2/libgit2.git"
-LG2_SHA="15e119375018fba121cf58e02a9f17fe22df0df8"
+LG2_SHA="338e6fb681369ff0537719095e22ce9dc602dbf0"
 
 if test ! -d "$LG2_DIR"; then
 	git -C "$LIB_DIR" clone --quiet "$LG2_REPO"

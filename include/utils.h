@@ -44,6 +44,7 @@ int is_sock(const char *);
 int is_fifo(const char *);
 int is_block(const char *);
 int is_char(const char *);
+int is_writable(const char *);
 
 /**
  * Type utilities
