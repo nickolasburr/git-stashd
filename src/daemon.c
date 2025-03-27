@@ -60,7 +60,7 @@ void daemonize (void) {
 /**
  * Create regular file.
  */
-void touch_file (int *error, char *filename, const char *filemode) {
+void ftouch (int *error, char *filename, const char *filemode) {
 	FILE *fp;
 	int fp_err;
 
@@ -86,10 +86,10 @@ void touch_file (int *error, char *filename, const char *filemode) {
 /**
  * Write to log file.
  */
-void write_to_stdout (const char *message) {
+void flog (const char *message) {
 	pid_t pid = getpid();
 
-	fprintf(stdout, "[%zu] %s\n", pid, message);
+	fprintf(stdout, "[%d] %s\n", pid, message);
 
 	/**
 	 * To prevent buffer data from lingering in
