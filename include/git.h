@@ -9,11 +9,14 @@
 
 #include "common.h"
 #include "daemon.h"
+#include "error.h"
 #include "mem.h"
 #include "timestamp.h"
 #include "utils.h"
 #include "git2/checkout.h"
+#include "git2/global.h"
 #include "git2/oid.h"
+#include "git2/repository.h"
 #include "git2/stash.h"
 
 #define GIT_STASHD_ENTRY_LINE_MAX 1024
@@ -46,7 +49,7 @@ struct git_stashd_repository {
 };
 
 void add_stash_entry(int *error, const char *path, struct git_stashd_stash *s);
-char *get_git_dir(int*, const char*);
+char *get_git_dir(int *, const char *);
 int has_coequal_entry(int *error, const char *path, struct git_stashd_stash *s);
 int has_lock(int *error, const char *path);
 int is_worktree_dirty(int *error, const char *path);
