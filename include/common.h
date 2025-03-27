@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "error.h"
 
 #ifdef __APPLE__
 #include <limits.h>
