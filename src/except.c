@@ -4,6 +4,7 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
+#include "assert.h"
 #include "common.h"
 #include "except.h"
 #include "utils.h"
@@ -18,6 +19,7 @@ void Except_raise (const T *e, const char *file, int line) {
 
 	if (is_null(p)) {
 		fprintf(stderr, "Uncaught exception");
+
 		if (e->reason) {
 			fprintf(stderr, " %s", e->reason);
 		} else {
