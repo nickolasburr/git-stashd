@@ -1,65 +1,125 @@
-# git-stashd(1)
+git-stashd(1)
+=============
 
-`git-stashd` is an autostashing daemon for Git.
+.. contents:: :local:
 
-## Table of Contents
+Description
+-----------
 
-- [Description](#description)
-- [Installation](#installation)
-  + [Homebrew](#homebrew)
-  + [Manual](#manual)
-- [Options](#options)
-- [Examples](#examples)
+``git-stashd`` is an autostashing daemon for Git. By utilizing the stashing functionality built into Git,
+``git-stashd`` stores the modified contents of a dirty worktree in a stash, which you can checkout, commit,
+or discard at a later point.
 
-## Description
+Installation
+------------
 
-By utilizing the stashing functionality built into Git, `git-stashd` stores the modified contents of a dirty worktree in a stash, which you can checkout, commit, or discard at a later point.
+There are two installation methods, Homebrew and manual.
 
-## Installation
+Homebrew
+^^^^^^^^
 
-You can install `git-stashd` via Homebrew or manually.
+.. code-block:: sh
 
-### Homebrew
+    brew tap nickolasburr/pfa
+    brew install git-stashd
 
-```
-brew tap nickolasburr/pfa
-brew install git-stashd
-```
+Manual
+^^^^^^
 
-### Manual
+By default, ``git-stashd`` is installed to ``/usr/local/bin``. You can set the ``prefix`` variable when running ``make`` to specify an alternate path.
 
-By default, `git-stashd` is installed to /usr/local/bin. You can set the `prefix` variable when running `make` to specify an alternate install location.
+.. code-block:: sh
 
-```
-make
-make install
-```
+    make
+    make install
 
-## Options
+Options
+-------
 
-+ `--foreground`, `-F`: Run daemon in foreground. Helpful for debugging.
-+ `--interval`, `-I`: Interval (in seconds) to check for changes. Defaults to `600` (10 minutes).
-+ `--log-file`, `-L`: Path to alternate log file. Default location is `$HOME/git-stashd.log`.
-+ `--max-entries`, `-M`: Maximum number of entries a stash should hold. Once the threshold has been met, the daemon will exit.
-+ `--path`, `-P`: Path to Git repository. Defaults to `cwd`.
+.. raw:: html
 
-## Examples
+    <blockquote>
+        <table frame="void" rules="none">
+            <tbody valign="top">
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-F, --foreground</span>
+                        </kbd>
+                    </td>
+                    <td>Run daemon in foreground. Helpful for debugging.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-I, --interval [NUM]</span>
+                        </kbd>
+                    </td>
+                    <td>Interval (in seconds) to check for changes. Defaults to <code>600</code> (10 minutes).</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-L, --log-file [PATH]</span>
+                        </kbd>
+                    </td>
+                    <td>Path to alternate log file. Default location is <code>$HOME/git-stashd.log</code>.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-M, --max-entries [NUM]</span>
+                        </kbd>
+                    </td>
+                    <td>Maximum number of entries a stash should hold. Once the threshold has been met, the daemon will exit.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-P, --path</span>
+                        </kbd>
+                    </td>
+                    <td>Path to Git repository. Defaults to <code>cwd</code>.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-h, --help</span>
+                        </kbd>
+                    </td>
+                    <td>Show help information and usage examples.</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd>
+                            <span>-v, --version</span>
+                        </kbd>
+                    </td>
+                    <td>Show version information.</td>
+                </tr>
+            </tbody>
+        </table>
+    </blockquote>
 
-**Start daemon for repository `~/projects/example`**
+Examples
+--------
 
-```
-# You can omit --path ~/projects/example, if currently in the ~/projects/example directory.
-git stashd --path ~/projects/example
-```
+Start daemon for repository ``~/projects/example``
 
-**Start daemon for repository `~/projects/example` with an interval of 30 seconds**
+.. code-block:: sh
 
-```
-git stashd --path ~/projects/example --interval 30
-```
+   # You can omit --path ~/projects/example, if currently in the ~/projects/example directory.
+   git stashd --path ~/projects/example
 
-**Start daemon in foreground for repository `~/projects/example` with an interval of 5 minutes**
 
-```
-git stashd --foreground --path ~/projects/example --interval 300
-```
+Start daemon for repository ``~/projects/example`` with an interval of 30 seconds
+
+.. code-block:: sh
+
+   git stashd --path ~/projects/example --interval 30
+
+Start daemon in foreground for repository ``~/projects/example`` with an interval of 5 minutes
+
+.. code-block:: sh
+
+   git stashd --foreground --path ~/projects/example --interval 300
