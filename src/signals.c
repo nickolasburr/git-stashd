@@ -59,16 +59,10 @@ void on_signal (int signal) {
 			}
 
 			fprintf(stdout, "[%zu] Cleanup complete. Exiting...\n", pid);
-
-			/**
-			 * Manually flush stdout.
-			 */
 			fflush(stdout);
-
 			exit(EXIT_SUCCESS);
 		default:
 			fprintf(stderr, "Caught wrong signal: %d\n", signal);
-
 			return;
 	}
 }
