@@ -1,18 +1,16 @@
-# Todo List
+TODO
+====
 
-### Known Bugs
+.. contents:: :local:
 
-None reported.
+Features
+--------
 
-### Upcoming Features
+1. Add ``--include-untracked`` option for specifying how to handle untracked files in a dirty worktree.
+2. Add ``--skip-index`` option for skipping the index when creating a stash commit.
 
-+ Add `--include-untracked` option for specifying how to handle untracked files in a dirty worktree.
-+ Add `--max-entries` option for specifying the maximum amount of entries a stash should contain.
+Improvements
+------------
 
-### Potential Features
-+ Add `--skip-index` option for skipping the index when creating a stash commit.
-
-### Improvements
-
-+ Utilize PID lock file, set maximum daemons for a single repository to 1.
-+ Get log directory from --log-file argument via `dirname`.
+1. Utilize PID lock file, set maximum daemons for a single repository to ``1``.
+2. Get log directory from ``--log-file`` argument via ``dirname``.
