@@ -17,7 +17,6 @@
  */
 char *base_name (char *path) {
 	char *base = strrchr(path, '/');
-
 	return base ? (base + 1) : path;
 }
 
