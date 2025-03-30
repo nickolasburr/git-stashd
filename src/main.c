@@ -269,7 +269,7 @@ int main (int argc, char **argv) {
 
 		path = realpath(argv[arg_index], path_buf);
 
-		if (is_null(path)) {
+		if (IS_NULL(path)) {
 			fprintf(stderr, "--path: Unable to access %s\n", argv[arg_index]);
 			exit(EXIT_FAILURE);
 		}
@@ -280,7 +280,7 @@ int main (int argc, char **argv) {
 		 */
 		path = getcwd(path_buf, PATH_MAX);
 
-		if (is_null(path)) {
+		if (IS_NULL(path)) {
 			fprintf(stderr, "--path: Unable to get current working directory\n");
 			exit(EXIT_FAILURE);
 		}
@@ -303,8 +303,8 @@ int main (int argc, char **argv) {
 
 		lock_err_msg = ALLOC(
 			sizeof(char) * (
-				(length(lock_err_fmt) + NULL_BYTE) +
-				(length(path) + NULL_BYTE)
+				(length(lock_err_fmt) + NUL_BYTE) +
+				(length(path) + NUL_BYTE)
 			)
 		);
 		sprintf(lock_err_msg, lock_err_fmt, path);
@@ -407,9 +407,9 @@ int main (int argc, char **argv) {
 
 			max_ent_info_msg = ALLOC(
 				sizeof(char) * (
-					(length(max_ent_info_fmt) + NULL_BYTE) +
-					(sizeof(int) + NULL_BYTE) +
-					(length(path) + NULL_BYTE)
+					(length(max_ent_info_fmt) + NUL_BYTE) +
+					(sizeof(int) + NUL_BYTE) +
+					(length(path) + NUL_BYTE)
 				)
 			);
 			sprintf(
@@ -443,9 +443,9 @@ int main (int argc, char **argv) {
 
 		log_info_msg = ALLOC(
 			sizeof(char) * (
-				(length(log_info_fmt) + NULL_BYTE) +
-				(length(path) + NULL_BYTE) +
-				(length(ts_buf) + NULL_BYTE)
+				(length(log_info_fmt) + NUL_BYTE) +
+				(length(path) + NUL_BYTE) +
+				(length(ts_buf) + NUL_BYTE)
 			)
 		);
 		sprintf(
@@ -471,7 +471,7 @@ int main (int argc, char **argv) {
 
 			wt_err_msg = ALLOC(
 				sizeof(char) * (
-					length(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NULL_BYTE
+					length(GIT_STASHD_CHECK_INDEX_STATUS_ERROR) + NUL_BYTE
 				)
 			);
 			sprintf(
@@ -500,7 +500,7 @@ int main (int argc, char **argv) {
 
 			ds_err_msg = ALLOC(
 				sizeof(char) * (
-					length(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR) + NULL_BYTE
+					length(GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR) + NUL_BYTE
 				)
 			);
 			sprintf(
@@ -541,7 +541,7 @@ int main (int argc, char **argv) {
 
 				ae_info_msg = ALLOC(
 					sizeof(char) * (
-						(length(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NULL_BYTE)
+						(length(GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY) + NUL_BYTE)
 					)
 				);
 				sprintf(
@@ -562,8 +562,8 @@ int main (int argc, char **argv) {
 
 				ee_err_msg = ALLOC(
 					sizeof(char) * (
-						(length(ee_err_fmt) + NULL_BYTE) +
-						(sizeof(int) + NULL_BYTE)
+						(length(ee_err_fmt) + NUL_BYTE) +
+						(sizeof(int) + NUL_BYTE)
 					)
 				);
 				sprintf(
