@@ -13,10 +13,10 @@ char *get_timestamp (char *ts_buf) {
 	time_t lt = time(NULL);
 	struct tm tm = *localtime(&lt);
 	static const char *tm_format = "%d:%.2d:%.2d on %.2d-%.2d-%d";
-	char *tm_buf;
+	char *tm_buf = NULL;
 
 	tm_buf = ALLOC(
-		(sizeof(char) * (length(tm_format) + NULL_BYTE)) +
+		(sizeof(char) * (length(tm_format) + NUL_BYTE)) +
 		GIT_STASHD_TMS_LENGTH_MAX
 	);
 	sprintf(
