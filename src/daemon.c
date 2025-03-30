@@ -42,17 +42,20 @@ void daemonize (void) {
 	}
 
 	umask(0);
-
 	chdir("/");
 
-	for (fd = sysconf(_SC_OPEN_MAX); fd > 0; fd--) {
+	for (
+		fd = sysconf(_SC_OPEN_MAX);
+		fd > 0;
+		fd--
+	) {
 		close(fd);
 	}
 
 	/**
 	 * @note extern log_path declared in common.h, defined in main.c.
 	 */
-	stdin  = fopen(NULL_DEVICE, "r");
+	stdin  = fopen(DEV_NULL, "r");
 	stdout = fopen(log_path, GIT_STASHD_LOG_MODE);
 	stderr = fopen(log_path, GIT_STASHD_LOG_MODE);
 }
@@ -60,21 +63,30 @@ void daemonize (void) {
 /**
  * Create regular file.
  */
-void ftouch (int *error, char *filename, const char *filemode) {
-	FILE *fp;
-	int fp_err;
+void ftouch (
+	int *error,
+	char *filename,
+	const char *filemode
+) {
+	FILE *fp = NULL;
+	int fp_err, lchar;
 
 	*error = 0;
+	lchar = length(filename) - 1;
 
 	/**
 	 * Remove trailing slash from path, if present.
 	 * e.g. $HOME/alternate.log/ -> $HOME/alternate.log
 	 */
-	if (filename[length(filename) - 1] == '/') {
-		filename[length(filename) - 1] = 0;
+	if (filename[lchar] == '/') {
+		filename[lchar] = 0;
 	}
 
-	fp = get_file(&fp_err, filename, filemode);
+	fp = get_file(
+		&fp_err,
+		filename,
+		filemode
+	);
 
 	if (fp_err) {
 		*error = 1;
@@ -86,10 +98,13 @@ void ftouch (int *error, char *filename, const char *filemode) {
 /**
  * Write to log file.
  */
-void flog (const char *message) {
-	pid_t pid = getpid();
-
-	fprintf(stdout, "[%d] %s\n", pid, message);
+void flog (const char *msg) {
+	fprintf(
+		stdout,
+		"[%d] %s\n",
+		getpid(),
+		msg
+	);
 
 	/**
 	 * To prevent buffer data from lingering in
