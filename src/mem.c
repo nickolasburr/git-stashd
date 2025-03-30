@@ -16,8 +16,8 @@ void *Mem_alloc (long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = malloc(nbytes);
 
-	if (is_null(ptr)) {
-		if (is_null(file)) {
+	if (IS_NULL(ptr)) {
+		if (IS_NULL(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);
@@ -34,8 +34,8 @@ void *Mem_calloc (long count, long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = calloc(count, nbytes);
 
-	if (is_null(ptr)) {
-		if (is_null(file)) {
+	if (IS_NULL(ptr)) {
+		if (IS_NULL(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);
@@ -56,8 +56,8 @@ void *Mem_resize (void *ptr, long nbytes, const char *file, int line) {
 	assert(nbytes > 0);
 	ptr = realloc(ptr, nbytes);
 
-	if (is_null(ptr)) {
-		if (is_null(file)) {
+	if (IS_NULL(ptr)) {
+		if (IS_NULL(file)) {
 			RAISE(Mem_Failed);
 		} else {
 			Except_raise(&Mem_Failed, file, line);
