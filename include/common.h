@@ -29,7 +29,7 @@
 
 #define DEV_NULL     "/dev/null"
 #define IS_NULL(ptr) ((ptr) == ((void *) 0))
-#define NULL_BYTE    1
+#define NUL_BYTE     1
 
 extern char lock_file[PATH_MAX];
 extern char log_path[PATH_MAX];
