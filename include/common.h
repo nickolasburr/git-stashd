@@ -22,10 +22,14 @@
 #endif
 
 #define _GNU_SOURCE
-#define NULL_BYTE 1
-#define NULL_DEVICE "/dev/null"
+
+#define CRLF      "\r\n"
 #define NOT_FOUND -1
 #define ERR_CATCH -2
+
+#define DEV_NULL     "/dev/null"
+#define IS_NULL(ptr) ((ptr) == ((void *) 0))
+#define NUL_BYTE     1
 
 extern char lock_file[PATH_MAX];
 extern char log_path[PATH_MAX];

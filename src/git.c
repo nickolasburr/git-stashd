@@ -9,25 +9,31 @@
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */
-int has_coequal_entry (
+int has_coequal_entry(
 	int *error,
 	const char *path,
 	struct git_stashd_stash *s
 ) {
-	int index;
+	int index, match;
+	char *diff_stash_cmd = NULL;
+
+	/**
+	 * @todo: These should be macros or static externs.
+	 */
 	static const char *diff_stash_fmt = "/usr/bin/git -C %s diff --quiet --exit-code stash@{%d}";
 
 	*error = 0;
 
-	for (index = 0; index < s->length; index++) {
-		int coequal_status;
-		char *diff_stash_cmd;
-
+	for (
+		index = 0;
+		index < s->length;
+		index++
+	) {
 		diff_stash_cmd = ALLOC(
 			sizeof(char) * (
-				(length(diff_stash_fmt) + NULL_BYTE) +
-				(length(path) + NULL_BYTE) +
-				(sizeof(int) + 1)
+				(length(diff_stash_fmt) + NUL_BYTE) +
+				(length(path) + NUL_BYTE) +
+				(sizeof(int) + NUL_BYTE)
 			)
 		);
 		sprintf(
@@ -37,13 +43,13 @@ int has_coequal_entry (
 			index
 		);
 
-		coequal_status = system(diff_stash_cmd);
+		match = system(diff_stash_cmd);
 
 		/**
 		 * Use `git-diff` to check if if the entry
 		 * diff is equivalent to the worktree diff.
 		 */
-		if (coequal_status == -1) {
+		if (match == -1) {
 			*error = 1;
 		}
 
@@ -52,7 +58,7 @@ int has_coequal_entry (
 		/**
 		 * If there is a matching entry, return its index.
 		 */
-		if (!coequal_status) {
+		if (!match) {
 			return index;
 		}
 	}
@@ -60,54 +66,73 @@ int has_coequal_entry (
 	return -1;
 }
 
-char *get_sha_by_index (
+char *get_sha_by_index(
 	int *error,
 	const char *path,
 	char *sha_buf,
 	int index
 ) {
-	FILE *fp;
+	FILE *file = NULL;
 	int fp_err;
-	static const char *format = "/usr/bin/git -C %s show --no-patch --format='%%H' stash@{%d}";
-	char *show_entry_cmd,
+	char *git_cmd = NULL,
+		 *result = NULL,
 	     line[GIT_STASHD_SHA_LENGTH_MAX];
+
+	/**
+	 * @todo: These should be macros or static externs.
+	 */
+	static const char *format = "/usr/bin/git -C %s show --no-patch --format='%%H' stash@{%d}";
 
 	*error = 0;
 
 	/**
-	 * Allocate space for `show_entry_cmd`,
-	 * create formatted command with interpolated
+	 * ALLOC space for `git_cmd`, create
+	 * formatted command with interpolated
 	 * pathname, and open pipe stream.
 	 */
-	show_entry_cmd = ALLOC(
+	git_cmd = ALLOC(
 		sizeof(char) * (
-			(length(format) + NULL_BYTE) +
-			(length(path) + NULL_BYTE)
+			(length(format) + NUL_BYTE) +
+			(length(path) + NUL_BYTE)
 		)
 	);
 	sprintf(
-		show_entry_cmd,
+		git_cmd,
 		format,
 		path,
 		index
 	);
 
-	fp = open_pipe(&fp_err, show_entry_cmd, "r");
+	file = open_pipe(
+		&fp_err,
+		git_cmd,
+		"r"
+	);
 
 	if (fp_err) {
-		close_pipe(fp);
+		close_pipe(file);
 		*error = 1;
 
 		return sha_buf;
 	}
 
-	while (!is_null(fgets(line, GIT_STASHD_SHA_LENGTH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
-		copy(sha_buf, line);
-	}
+	do {
+		result = fgets(
+			line,
+			GIT_STASHD_SHA_LENGTH_MAX,
+			file
+		);
 
-	close_pipe(fp);
-	FREE(show_entry_cmd);
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		line[strcspn(line, CRLF)] = 0;
+		copy(sha_buf, line);
+	} while (1);
+
+	close_pipe(file);
+	FREE(git_cmd);
 
 	return sha_buf;
 }
@@ -115,46 +140,65 @@ char *get_sha_by_index (
 /**
  * Get the name of current branch.
  */
-char *get_current_branch (int *error, const char *path, char *ref_buf) {
-	FILE *fp;
+char *get_current_branch(
+	int *error,
+	const char *path,
+	char *ref_buf
+) {
+	FILE *file = NULL;
 	int fp_err;
-	static const char *format = "/usr/bin/git -C %s rev-parse --abbrev-ref HEAD";
-	char *current_branch_cmd,
+	char *git_cmd = NULL,
+		 *result = NULL,
 	     line[GIT_STASHD_REF_LENGTH_MAX];
+
+	/**
+	 * @todo: These should be macros or static externs.
+	 */
+	static const char *format = "/usr/bin/git -C %s rev-parse --abbrev-ref HEAD";
 
 	*error = 0;
 
-	current_branch_cmd = ALLOC(
+	git_cmd = ALLOC(
 		sizeof(char) * (
-			(length(format) + NULL_BYTE) +
-			(length(path) + NULL_BYTE)
+			(length(format) + NUL_BYTE) +
+			(length(path) + NUL_BYTE)
 		)
 	);
 	sprintf(
-		current_branch_cmd,
+		git_cmd,
 		format,
 		path
 	);
 
-	fp = open_pipe(
+	file = open_pipe(
 		&fp_err,
-		current_branch_cmd,
+		git_cmd,
 		"r"
 	);
 
 	if (fp_err) {
-		close_pipe(fp);
+		close_pipe(file);
 		*error = 1;
 		return ref_buf;
 	}
 
-	while (!is_null(fgets(line, GIT_STASHD_REF_LENGTH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
-		copy(ref_buf, line);
-	}
+	do {
+		result = fgets(
+			line,
+			GIT_STASHD_SHA_LENGTH_MAX,
+			file
+		);
 
-	close_pipe(fp);
-	FREE(current_branch_cmd);
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		line[strcspn(line, CRLF)] = 0;
+		copy(ref_buf, line);
+	} while (1);
+
+	close_pipe(file);
+	FREE(git_cmd);
 
 	return ref_buf;
 }
@@ -164,32 +208,37 @@ char *get_current_branch (int *error, const char *path, char *ref_buf) {
  *
  * @todo: Use libgit2 for creating/applying stash entry.
  */
-void add_stash_entry (
+void add_stash_entry(
 	int *error,
 	const char *path,
 	struct git_stashd_stash *s
 ) {
-	FILE *fp;
-	int entry_status,
-	    fp_err,
-	    ref_error;
-	char *create_cmd,
-	     *store_cmd,
-	     *entry_msg,
+	FILE *file = NULL;
+	int entry_status;
+	int fp_err, ref_error;
+	char *create_cmd = NULL,
+	     *store_cmd = NULL,
+	     *entry_msg = NULL,
+		 *result = NULL,
 	     line[GIT_STASHD_MSG_LENGTH_MAX],
 	     ts_buf[GIT_STASHD_TMS_LENGTH_MAX],
 	     ref_buf[GIT_STASHD_REF_LENGTH_MAX],
 	     sha_buf[GIT_STASHD_SHA_LENGTH_MAX];
+
+	/**
+	 * @todo: These should be macros or static externs.
+	 */
 	static const char *cformat = "/usr/bin/git -C %s stash create '%s'",
 	                  *sformat = "/usr/bin/git -C %s stash store --message '%s' %s",
 	                  *mformat = "WIP on %s: git-stashd autostash @ %s";
 
 	*error = 0;
 
-	/**
-	 * Get branch, timestamp
-	 */
-	get_current_branch(&ref_error, path, ref_buf);
+	get_current_branch(
+		&ref_error,
+		path,
+		ref_buf
+	);
 	get_timestamp(ts_buf);
 
 	if (ref_error) {
@@ -199,9 +248,9 @@ void add_stash_entry (
 
 	entry_msg = ALLOC(
 		sizeof(char) * (
-			(length(mformat) + NULL_BYTE) +
-			(length(ref_buf) + NULL_BYTE) +
-			(length(ts_buf) + NULL_BYTE)
+			(length(mformat) + NUL_BYTE) +
+			(length(ref_buf) + NUL_BYTE) +
+			(length(ts_buf) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -216,9 +265,9 @@ void add_stash_entry (
 	 */
 	create_cmd = ALLOC(
 		sizeof(char) * (
-			(length(cformat) + NULL_BYTE) +
-			(length(path) + NULL_BYTE) +
-			(length(entry_msg) + NULL_BYTE)
+			(length(cformat) + NUL_BYTE) +
+			(length(path) + NUL_BYTE) +
+			(length(entry_msg) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -228,29 +277,39 @@ void add_stash_entry (
 		entry_msg
 	);
 
-	fp = open_pipe(
+	file = open_pipe(
 		&fp_err,
 		create_cmd,
 		"r"
 	);
 
 	if (fp_err) {
-		close_pipe(fp);
+		close_pipe(file);
 		*error = 1;
 		return;
 	}
 
-	while (!is_null(fgets(line, GIT_STASHD_SHA_LENGTH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
+	do {
+		result = fgets(
+			line,
+			GIT_STASHD_SHA_LENGTH_MAX,
+			file
+		);
+
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		line[strcspn(line, CRLF)] = 0;
 		copy(sha_buf, line);
-	}
+	} while (1);
 
 	store_cmd = ALLOC(
 		sizeof(char) * (
-			(length(sformat) + NULL_BYTE) +
-			(length(path) + NULL_BYTE) +
-			(length(entry_msg) + NULL_BYTE) +
-			(length(sha_buf) + NULL_BYTE)
+			(length(sformat) + NUL_BYTE) +
+			(length(path) + NUL_BYTE) +
+			(length(entry_msg) + NUL_BYTE) +
+			(length(sha_buf) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -272,34 +331,36 @@ void add_stash_entry (
 		*error = 1;
 	}
 
-	close_pipe(fp);
+	close_pipe(file);
 	FREE(create_cmd);
 	FREE(store_cmd);
 	FREE(entry_msg);
 }
 
 /**
- * Callback function for libgit2 `git_stash_foreach`. Used solely for calculating stash length.
+ * Callback function for libgit2 `git_stash_foreach`.
+ * Used solely for calculating stash length.
  */
-git_stash_cb *init_setup (
+git_stash_cb *init_setup(
 	size_t index,
-	const char *message,
+	const char *msg,
 	const git_oid *stash_id,
 	void *payload
 ) {
 	/**
 	 * Increment payload int pointer.
 	 */
-	(*(int*) payload)++;
+	(*(int *) payload)++;
 	return 0;
 }
 
 /**
- * Callback function for libgit2 `git_stash_foreach`. Initialize repository stash.
+ * Callback function for libgit2 `git_stash_foreach`.
+ * Initialize repository stash.
  */
-git_stash_cb *init_stash (
+git_stash_cb *init_stash(
 	size_t index,
-	const char *message,
+	const char *msg,
 	const git_oid *stash_id,
 	void *payload
 ) {
@@ -330,7 +391,7 @@ git_stash_cb *init_stash (
 	);
 	copy(
 		((struct git_stashd_stash *) payload)->entries[index]->message,
-		message
+		msg
 	);
 
 	return 0;
@@ -341,16 +402,22 @@ git_stash_cb *init_stash (
  *
  * @todo: Refactor variable usage.
  */
-char *get_git_dir (int *error, const char *path) {
-	FILE *fp;
+char *get_git_dir(
+	int *error,
+	const char *path
+) {
+	FILE *file = NULL;
 	int fp_err;
+	size_t substr;
 	char abs_path[PATH_MAX],
 	     git_dir[PATH_MAX],
 	     git_dir_buf[PATH_MAX],
 	     top_dir[PATH_MAX],
 	     top_dir_buf[PATH_MAX],
-	     *git_dir_cmd,
-	     *top_dir_cmd;
+	     *git_dir_cmd = NULL,
+	     *top_dir_cmd = NULL,
+		 *result = NULL;
+
 	/**
 	 * @todo: These should be macros or static externs.
 	 */
@@ -361,8 +428,8 @@ char *get_git_dir (int *error, const char *path) {
 
 	git_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NULL_BYTE) +
-			(length(git_dir_fmt) + NULL_BYTE)
+			(length(path) + NUL_BYTE) +
+			(length(git_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -371,7 +438,7 @@ char *get_git_dir (int *error, const char *path) {
 		path
 	);
 
-	fp = open_pipe(
+	file = open_pipe(
 		&fp_err,
 		git_dir_cmd,
 		"r"
@@ -381,21 +448,35 @@ char *get_git_dir (int *error, const char *path) {
 		goto on_error;
 	}
 
-	while (!is_null(fgets(git_dir_buf, PATH_MAX, fp))) {
-		git_dir_buf[strcspn(git_dir_buf, "\r\n")] = 0;
-	}
+	do {
+		result = fgets(
+			git_dir_buf,
+			PATH_MAX,
+			file
+		);
 
-	copy(git_dir, git_dir_buf);
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		substr = strcspn(git_dir_buf, CRLF);
+		git_dir_buf[substr] = 0;
+	} while (1);
+
+	copy(
+		git_dir,
+		git_dir_buf
+	);
 
 	/**
 	 * Flush the stream.
 	 */
-	fflush(fp);
+	fflush(file);
 
 	top_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NULL_BYTE) +
-			(length(top_dir_fmt) + NULL_BYTE)
+			(length(path) + NUL_BYTE) +
+			(length(top_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -404,7 +485,7 @@ char *get_git_dir (int *error, const char *path) {
 		path
 	);
 
-	fp = open_pipe(
+	file = open_pipe(
 		&fp_err,
 		top_dir_cmd,
 		"r"
@@ -414,20 +495,36 @@ char *get_git_dir (int *error, const char *path) {
 		goto on_error;
 	}
 
-	while (!is_null(fgets(top_dir_buf, PATH_MAX, fp))) {
-		top_dir_buf[strcspn(top_dir_buf, "\r\n")] = 0;
-	}
+	do {
+		result = fgets(
+			top_dir_buf,
+			PATH_MAX,
+			file
+		);
 
-	copy(top_dir, top_dir_buf);
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		top_dir_buf[strcspn(top_dir_buf, CRLF)] = 0;
+	} while (1);
+
+	copy(
+		top_dir,
+		top_dir_buf
+	);
 
 	/**
 	 * Assemble absolute path to .git directory.
 	 */
 	copy(abs_path, top_dir);
 	concat(abs_path, "/");
-	concat(abs_path, base_name(git_dir));
+	concat(
+		abs_path,
+		base_name(git_dir)
+	);
 
-	close_pipe(fp);
+	close_pipe(file);
 	FREE(git_dir_cmd);
 	FREE(top_dir_cmd);
 
@@ -436,7 +533,7 @@ char *get_git_dir (int *error, const char *path) {
 on_error:
 	*error = 1;
 
-	close_pipe(fp);
+	close_pipe(file);
 	FREE(git_dir_cmd);
 	FREE(top_dir_cmd);
 
@@ -446,15 +543,21 @@ on_error:
 /**
  * Check if a stashd.lock file exists for the repository.
  */
-int has_lock (int *error, const char *path) {
-	FILE *fp;
+int has_lock(
+	int *error,
+	const char *path
+) {
+	FILE *file = NULL;
 	int fp_err;
+	size_t substr;
 	char git_dir[PATH_MAX],
 	     line[PATH_MAX],
 	     lock_file[PATH_MAX],
-	     *git_dir_cmd;
+	     *git_dir_cmd = NULL,
+		 *result = NULL;
+
 	/**
-	 * @todo: This should be a macro or static extern.
+	 * @todo: These should be macros or static externs.
 	 */
 	static const char *git_dir_fmt = "/usr/bin/git -C %s rev-parse --git-dir";
 
@@ -462,8 +565,8 @@ int has_lock (int *error, const char *path) {
 
 	git_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NULL_BYTE) +
-			(length(git_dir_fmt) + NULL_BYTE)
+			(length(path) + NUL_BYTE) +
+			(length(git_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -472,7 +575,7 @@ int has_lock (int *error, const char *path) {
 		path
 	);
 
-	fp = open_pipe(
+	file = open_pipe(
 		&fp_err,
 		git_dir_cmd,
 		"r"
@@ -482,14 +585,28 @@ int has_lock (int *error, const char *path) {
 		goto on_error;
 	}
 
-	while (!is_null(fgets(line, PATH_MAX, fp))) {
-		line[strcspn(line, "\r\n")] = 0;
-	}
+	do {
+		result = fgets(
+			line,
+			PATH_MAX,
+			file
+		);
+
+		if (IS_NULL(result)) {
+			break;
+		}
+
+		substr = strcspn(line, CRLF);
+		line[substr] = 0;
+	} while (1);
 
 	/**
 	 * Get basename of $GIT_DIR.
 	 */
-	copy(git_dir, base_name(line));
+	copy(
+		git_dir,
+		base_name(line)
+	);
 
 	/**
 	 * Assemble absolute path to stashd.lock file.
@@ -498,9 +615,12 @@ int has_lock (int *error, const char *path) {
 	concat(lock_file, "/");
 	concat(lock_file, git_dir);
 	concat(lock_file, "/");
-	concat(lock_file, GIT_STASHD_LOCK_FILE);
+	concat(
+		lock_file,
+		GIT_STASHD_LOCK_FILE
+	);
 
-	close_pipe(fp);
+	close_pipe(file);
 	FREE(git_dir_cmd);
 
 	return is_file(lock_file);
@@ -508,7 +628,7 @@ int has_lock (int *error, const char *path) {
 on_error:
 	*error = 1;
 
-	close_pipe(fp);
+	close_pipe(file);
 	FREE(git_dir_cmd);
 
 	return -1;
@@ -519,11 +639,14 @@ on_error:
  *
  * @todo: Rebuild with libgit2 `git_diff_index_to_workdir`.
  */
-int is_worktree_dirty (int *error, const char *path) {
-	int index_status,
-	    update_status;
-	char *diff_index_cmd,
-	     *update_index_cmd;
+int is_worktree_dirty(
+	int *error,
+	const char *path
+) {
+	int index_status, update_status;
+	char *diff_index_cmd = NULL,
+	     *update_index_cmd = NULL;
+
 	/**
 	 * @todo: These should be macros or static externs.
 	 */
@@ -538,8 +661,8 @@ int is_worktree_dirty (int *error, const char *path) {
 	 */
 	diff_index_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NULL_BYTE) +
-			(length(diff_index_fmt) + NULL_BYTE)
+			(length(path) + NUL_BYTE) +
+			(length(diff_index_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -550,8 +673,8 @@ int is_worktree_dirty (int *error, const char *path) {
 
 	update_index_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NULL_BYTE) +
-			(length(update_index_fmt) + NULL_BYTE)
+			(length(path) + NUL_BYTE) +
+			(length(update_index_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -560,20 +683,20 @@ int is_worktree_dirty (int *error, const char *path) {
 		path
 	);
 
-	update_status = system(update_index_cmd);
-
 	/**
 	 * Refresh the index before checking state
 	 */
+	update_status = system(update_index_cmd);
+
 	if (update_status == -1) {
 		*error = 1;
 	}
 
-	index_status = system(diff_index_cmd);
-
 	/**
 	 * Get state information via `diff-index`
 	 */
+	index_status = system(diff_index_cmd);
+
 	if (index_status == -1) {
 		*error = 1;
 	}
@@ -581,9 +704,5 @@ int is_worktree_dirty (int *error, const char *path) {
 	FREE(diff_index_cmd);
 	FREE(update_index_cmd);
 
-	if (index_status) {
-		return 1;
-	}
-
-	return 0;
+	return index_status ? 1 : 0;
 }

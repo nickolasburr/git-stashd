@@ -50,8 +50,6 @@ int is_writable(const char *);
  * Type utilities
  */
 
-int is_digit(int);
-int is_null(void *);
 int is_numeric(char *);
 
 #endif /* GIT_STASHD_UTILS_H */

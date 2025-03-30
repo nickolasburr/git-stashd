@@ -48,16 +48,16 @@ struct git_stashd_repository {
 	struct git_stashd_stash *stash;
 };
 
-void add_stash_entry(int *error, const char *path, struct git_stashd_stash *s);
+void add_stash_entry(int *, const char *, struct git_stashd_stash *);
 char *get_git_dir(int *, const char *);
-int has_coequal_entry(int *error, const char *path, struct git_stashd_stash *s);
-int has_lock(int *error, const char *path);
-int is_worktree_dirty(int *error, const char *path);
+int has_coequal_entry(int *, const char *, struct git_stashd_stash *);
+int has_lock(int *, const char *);
+int is_worktree_dirty(int *, const char *);
 
-git_stash_cb *init_setup(size_t index, const char *message, const git_oid *stash_id, void *payload);
-git_stash_cb *init_stash(size_t index, const char *message, const git_oid *stash_id, void *payload);
+git_stash_cb *init_setup(size_t, const char *, const git_oid *, void *);
+git_stash_cb *init_stash(size_t, const char *, const git_oid *, void *);
 
-char *get_current_branch(int *error, const char *path, char *ref_buf);
-char *get_sha_by_index(int *error, const char *path, char *sha_buf, int index);
+char *get_current_branch(int *, const char *, char *);
+char *get_sha_by_index(int *, const char *, char *, int);
 
 #endif /* GIT_STASHD_GIT_H */

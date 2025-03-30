@@ -15,7 +15,7 @@
 /**
  * GNU `basename` polyfill.
  */
-char *base_name (char *path) {
+char *base_name(char *path) {
 	char *base = strrchr(path, '/');
 	return base ? (base + 1) : path;
 }
@@ -23,45 +23,44 @@ char *base_name (char *path) {
 /**
  * `strcmp` wrapper
  */
-int compare (char *one, char *two) {
+int compare(char *one, char *two) {
 	return strcmp(one, two);
 };
 
 /**
  * `strcat` wrapper
  */
-char *concat (char *buf, char *str) {
+char *concat(char *buf, char *str) {
 	return strcat(buf, str);
 }
 
 /**
  * `strcpy` wrapper
  */
-char *copy (char *buf, char *str) {
+char *copy(char *buf, char *str) {
 	return strcpy(buf, str);
 }
 
 /**
  * GNU `dirname` polyfill.
  */
-char *dir_name (char *path) {
+char *dir_name(char *path) {
 	static const char *dot = ".";
-	char *pslash;
+	char *pslash = NULL;
 
 	/**
 	 * Get trailing slash.
 	 */
-	pslash = !is_null(path)
-	       ? strrchr(path, '/')
-	       : NULL;
+	pslash = !IS_NULL(path)
+	       ? strrchr(path, '/') : NULL;
 
 	if (pslash == path) {
 		++pslash;
-	} else if (!is_null(pslash) && pslash[1] == '\0') {
+	} else if (!IS_NULL(pslash) && pslash[1] == '\0') {
 		pslash = memchr(path, pslash - path, '/');
 	}
 
-	if (!is_null(pslash)) {
+	if (!IS_NULL(pslash)) {
 		pslash[0] = '\0';
 	} else {
 		path = (char *) dot;
@@ -73,7 +72,11 @@ char *dir_name (char *path) {
 /**
  * Get index of element in array.
  */
-int index_of (char *element, char **array, size_t size) {
+int index_of(
+	char *element,
+	char **array,
+	size_t size
+) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
@@ -88,7 +91,11 @@ int index_of (char *element, char **array, size_t size) {
 /**
  * Check if element exists in array.
  */
-int in_array (char *element, char **array, size_t size) {
+int in_array(
+	char *element,
+	char **array,
+	size_t size
+) {
 	unsigned int i;
 
 	for (i = 0; i < size; i += 1) {
@@ -103,7 +110,7 @@ int in_array (char *element, char **array, size_t size) {
 /**
  * `strlen` wrapper
  */
-int length (char *str) {
+int length(char *str) {
 	return strlen(str);
 }
 
@@ -116,52 +123,66 @@ int length (char *str) {
 /**
  * Get pointer to directory by its pathname.
  */
-DIR *get_dir (int *error, const char *path) {
-	DIR *dp;
+DIR *get_dir(
+	int *error,
+	const char *path
+) {
+	DIR *dir = NULL;
 
 	*error = 0;
+	dir = opendir(path);
 
-	if (!(dp = opendir(path))) {
+	if (IS_NULL(dir)) {
 		*error = 1;
 	}
 
-	return dp;
+	return dir;
 }
 
 /**
  * Get pointer to file by its pathname.
  */
-FILE *get_file (int *error, const char *filename, const char *filemode) {
-	FILE *fp = fopen(filename, filemode);
+FILE *get_file(
+	int *error,
+	const char *name,
+	const char *mode
+) {
+	FILE *file = NULL;
 
 	*error = 0;
+	file = fopen(name, mode);
 
-	if (is_null(fp)) {
+	if (IS_NULL(file)) {
 		*error = 1;
 	}
 
-	return fp;
+	return file;
 }
 
 /**
  * Get pointer to pipe.
  */
-FILE *open_pipe (int *error, const char *command, const char *pipemode) {
-	FILE *fp = popen(command, pipemode);
+FILE *open_pipe(
+	int *error,
+	const char *cmd,
+	const char *mode
+) {
+	FILE *pipe = NULL;
 
 	*error = 0;
+	pipe = popen(cmd, mode);
 
-	if (is_null(fp)) {
+	if (IS_NULL(pipe)) {
 		*error = 1;
 	}
 
-	return fp;
+	return pipe;
 }
 
 /**
  * Close pointer to pipe.
  */
-int close_pipe (FILE *fp) {
+int close_pipe(FILE *fp) {
 	return pclose(fp);
 }
 
@@ -170,7 +191,7 @@ int close_pipe (FILE *fp) {
  *
  * @note Adapted from https://goo.gl/ZmWfbx
  */
-int is_dir (const char *path) {
+int is_dir(const char *path) {
 	struct dirent *de;
 	int is_dir, error;
 	DIR *dp = get_dir(&error, path);
@@ -203,25 +224,16 @@ int is_dir (const char *path) {
  *
  * @note Adapted from https://goo.gl/ZmWfbx
  */
-int is_file (const char *path) {
+int is_file(const char *path) {
 	struct stat st;
-
-	if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) {
-		return 1;
-	}
-
-	return 0;
+	return (stat(path, &st) == 0 && S_ISREG(st.st_mode)) ? 1 : 0;
 }
 
 /**
  * Determine if pathname is writable.
  */
-int is_writable (const char *path) {
-	if (!access(path, W_OK)) {
-		return 1;
-	}
-
-	return 0;
+int is_writable(const char *path) {
+	return !access(path, W_OK) ? 1 : 0;
 }
 
 /**
@@ -231,38 +243,23 @@ int is_writable (const char *path) {
  */
 
 /**
- * `isdigit` wrapper
- */
-int is_digit (int c) {
-	return isdigit(c);
-}
-
-/**
- * Determine if pointer is a null pointer.
- */
-int is_null (void *ptr) {
-	if (ptr == NULL) {
-		return 1;
-	}
-
-	return 0;
-}
-
-/**
  * Determine if string is numeric.
  */
-int is_numeric (char *str) {
-	int index;
+int is_numeric(char *str) {
+	int index = 0;
+	char chrval;
 
-	index = 0;
+	do {
+		chrval = str[index++];
 
-	while (str[index] != '\0') {
-		if (!is_digit(str[index])) {
-			return 0;
+		if (chrval == '\0') {
+			break;
 		}
 
-		index++;
-	}
+		if (!isdigit(chrval)) {
+			return 0;
+		}
+	} while (1);
 
 	return 1;
 }
