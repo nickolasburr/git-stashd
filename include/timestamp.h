@@ -13,6 +13,6 @@
 #include "git.h"
 #include "utils.h"
 
-char *get_timestamp(char *ts_buf);
+char *get_timestamp(char *);
 
 #endif /* GIT_STASHD_TIMESTAMP_H */
