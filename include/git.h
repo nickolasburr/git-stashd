@@ -50,7 +50,7 @@ struct git_stashd_repository {
 
 void add_stash_entry(int *, const char *, struct git_stashd_stash *);
 char *get_git_dir(int *, const char *);
-int has_coequal_entry(int *, const char *, struct git_stashd_stash *);
+int has_match_entry(int *, const char *, struct git_stashd_stash *);
 int has_lock(int *, const char *);
 int is_worktree_dirty(int *, const char *);
 
