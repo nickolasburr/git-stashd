@@ -9,7 +9,7 @@
 /**
  * Fork parent process and run in detached daemon mode.
  */
-void daemonize (void) {
+void daemonize(void) {
 	int fd;
 	uid_t euid;
 
@@ -63,7 +63,7 @@ void daemonize (void) {
 /**
  * Create regular file.
  */
-void ftouch (
+void ftouch(
 	int *error,
 	char *filename,
 	const char *filemode
@@ -72,7 +72,7 @@ void ftouch (
 	int fp_err, lchar;
 
 	*error = 0;
-	lchar = length(filename) - 1;
+	lchar = strlen(filename) - 1;
 
 	/**
 	 * Remove trailing slash from path, if present.
@@ -98,7 +98,7 @@ void ftouch (
 /**
  * Write to log file.
  */
-void flog (const char *msg) {
+void flog(const char *msg) {
 	fprintf(
 		stdout,
 		"[%d] %s\n",
