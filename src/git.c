@@ -9,7 +9,7 @@
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */
-int has_coequal_entry(
+int has_match_entry(
 	int *error,
 	const char *path,
 	struct git_stashd_stash *s
@@ -31,8 +31,8 @@ int has_coequal_entry(
 	) {
 		diff_stash_cmd = ALLOC(
 			sizeof(char) * (
-				(length(diff_stash_fmt) + NUL_BYTE) +
-				(length(path) + NUL_BYTE) +
+				(strlen(diff_stash_fmt) + NUL_BYTE) +
+				(strlen(path) + NUL_BYTE) +
 				(sizeof(int) + NUL_BYTE)
 			)
 		);
@@ -92,8 +92,8 @@ char *get_sha_by_index(
 	 */
 	git_cmd = ALLOC(
 		sizeof(char) * (
-			(length(format) + NUL_BYTE) +
-			(length(path) + NUL_BYTE)
+			(strlen(format) + NUL_BYTE) +
+			(strlen(path) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -110,7 +110,7 @@ char *get_sha_by_index(
 	);
 
 	if (fp_err) {
-		close_pipe(file);
+		pclose(file);
 		*error = 1;
 
 		return sha_buf;
@@ -123,15 +123,15 @@ char *get_sha_by_index(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
 		line[strcspn(line, CRLF)] = 0;
-		copy(sha_buf, line);
+		strcpy(sha_buf, line);
 	} while (1);
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_cmd);
 
 	return sha_buf;
@@ -160,8 +160,8 @@ char *get_current_branch(
 
 	git_cmd = ALLOC(
 		sizeof(char) * (
-			(length(format) + NUL_BYTE) +
-			(length(path) + NUL_BYTE)
+			(strlen(format) + NUL_BYTE) +
+			(strlen(path) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -177,7 +177,7 @@ char *get_current_branch(
 	);
 
 	if (fp_err) {
-		close_pipe(file);
+		pclose(file);
 		*error = 1;
 		return ref_buf;
 	}
@@ -189,15 +189,15 @@ char *get_current_branch(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
 		line[strcspn(line, CRLF)] = 0;
-		copy(ref_buf, line);
+		strcpy(ref_buf, line);
 	} while (1);
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_cmd);
 
 	return ref_buf;
@@ -248,9 +248,9 @@ void add_stash_entry(
 
 	entry_msg = ALLOC(
 		sizeof(char) * (
-			(length(mformat) + NUL_BYTE) +
-			(length(ref_buf) + NUL_BYTE) +
-			(length(ts_buf) + NUL_BYTE)
+			(strlen(mformat) + NUL_BYTE) +
+			(strlen(ref_buf) + NUL_BYTE) +
+			(strlen(ts_buf) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -265,9 +265,9 @@ void add_stash_entry(
 	 */
 	create_cmd = ALLOC(
 		sizeof(char) * (
-			(length(cformat) + NUL_BYTE) +
-			(length(path) + NUL_BYTE) +
-			(length(entry_msg) + NUL_BYTE)
+			(strlen(cformat) + NUL_BYTE) +
+			(strlen(path) + NUL_BYTE) +
+			(strlen(entry_msg) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -284,7 +284,7 @@ void add_stash_entry(
 	);
 
 	if (fp_err) {
-		close_pipe(file);
+		pclose(file);
 		*error = 1;
 		return;
 	}
@@ -296,20 +296,20 @@ void add_stash_entry(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
 		line[strcspn(line, CRLF)] = 0;
-		copy(sha_buf, line);
+		strcpy(sha_buf, line);
 	} while (1);
 
 	store_cmd = ALLOC(
 		sizeof(char) * (
-			(length(sformat) + NUL_BYTE) +
-			(length(path) + NUL_BYTE) +
-			(length(entry_msg) + NUL_BYTE) +
-			(length(sha_buf) + NUL_BYTE)
+			(strlen(sformat) + NUL_BYTE) +
+			(strlen(path) + NUL_BYTE) +
+			(strlen(entry_msg) + NUL_BYTE) +
+			(strlen(sha_buf) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -331,7 +331,7 @@ void add_stash_entry(
 		*error = 1;
 	}
 
-	close_pipe(file);
+	pclose(file);
 	FREE(create_cmd);
 	FREE(store_cmd);
 	FREE(entry_msg);
@@ -385,11 +385,11 @@ git_stash_cb *init_stash(
 		exit(EXIT_FAILURE);
 	}
 
-	copy(
+	strcpy(
 		((struct git_stashd_stash *) payload)->entries[index]->hash,
 		sha_buf
 	);
-	copy(
+	strcpy(
 		((struct git_stashd_stash *) payload)->entries[index]->message,
 		msg
 	);
@@ -428,8 +428,8 @@ char *get_git_dir(
 
 	git_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NUL_BYTE) +
-			(length(git_dir_fmt) + NUL_BYTE)
+			(strlen(path) + NUL_BYTE) +
+			(strlen(git_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -455,7 +455,7 @@ char *get_git_dir(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
@@ -463,7 +463,7 @@ char *get_git_dir(
 		git_dir_buf[substr] = 0;
 	} while (1);
 
-	copy(
+	strcpy(
 		git_dir,
 		git_dir_buf
 	);
@@ -475,8 +475,8 @@ char *get_git_dir(
 
 	top_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NUL_BYTE) +
-			(length(top_dir_fmt) + NUL_BYTE)
+			(strlen(path) + NUL_BYTE) +
+			(strlen(top_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -502,14 +502,14 @@ char *get_git_dir(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
 		top_dir_buf[strcspn(top_dir_buf, CRLF)] = 0;
 	} while (1);
 
-	copy(
+	strcpy(
 		top_dir,
 		top_dir_buf
 	);
@@ -517,14 +517,14 @@ char *get_git_dir(
 	/**
 	 * Assemble absolute path to .git directory.
 	 */
-	copy(abs_path, top_dir);
-	concat(abs_path, "/");
-	concat(
+	strcpy(abs_path, top_dir);
+	strcat(abs_path, "/");
+	strcat(
 		abs_path,
 		base_name(git_dir)
 	);
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_dir_cmd);
 	FREE(top_dir_cmd);
 
@@ -533,7 +533,7 @@ char *get_git_dir(
 on_error:
 	*error = 1;
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_dir_cmd);
 	FREE(top_dir_cmd);
 
@@ -565,8 +565,8 @@ int has_lock(
 
 	git_dir_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NUL_BYTE) +
-			(length(git_dir_fmt) + NUL_BYTE)
+			(strlen(path) + NUL_BYTE) +
+			(strlen(git_dir_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -592,7 +592,7 @@ int has_lock(
 			file
 		);
 
-		if (IS_NULL(result)) {
+		if (result == NULL) {
 			break;
 		}
 
@@ -603,7 +603,7 @@ int has_lock(
 	/**
 	 * Get basename of $GIT_DIR.
 	 */
-	copy(
+	strcpy(
 		git_dir,
 		base_name(line)
 	);
@@ -611,16 +611,16 @@ int has_lock(
 	/**
 	 * Assemble absolute path to stashd.lock file.
 	 */
-	copy(lock_file, path);
-	concat(lock_file, "/");
-	concat(lock_file, git_dir);
-	concat(lock_file, "/");
-	concat(
+	strcpy(lock_file, path);
+	strcat(lock_file, "/");
+	strcat(lock_file, git_dir);
+	strcat(lock_file, "/");
+	strcat(
 		lock_file,
 		GIT_STASHD_LOCK_FILE
 	);
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_dir_cmd);
 
 	return is_file(lock_file);
@@ -628,7 +628,7 @@ int has_lock(
 on_error:
 	*error = 1;
 
-	close_pipe(file);
+	pclose(file);
 	FREE(git_dir_cmd);
 
 	return -1;
@@ -661,8 +661,8 @@ int is_worktree_dirty(
 	 */
 	diff_index_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NUL_BYTE) +
-			(length(diff_index_fmt) + NUL_BYTE)
+			(strlen(path) + NUL_BYTE) +
+			(strlen(diff_index_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(
@@ -673,8 +673,8 @@ int is_worktree_dirty(
 
 	update_index_cmd = ALLOC(
 		sizeof(char) * (
-			(length(path) + NUL_BYTE) +
-			(length(update_index_fmt) + NUL_BYTE)
+			(strlen(path) + NUL_BYTE) +
+			(strlen(update_index_fmt) + NUL_BYTE)
 		)
 	);
 	sprintf(

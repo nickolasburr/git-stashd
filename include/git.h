@@ -20,7 +20,6 @@
 #include "git2/stash.h"
 
 #define GIT_STASHD_ENTRY_LINE_MAX 1024
-#define GIT_STASHD_ENT_LENGTH_MAX 50
 #define GIT_STASHD_MSG_LENGTH_MAX 90
 #define GIT_STASHD_REF_LENGTH_MAX 255
 #define GIT_STASHD_SHA_LENGTH_MAX 42
@@ -39,7 +38,7 @@ struct git_stashd_entry {
 
 struct git_stashd_stash {
 	size_t length;
-	struct git_stashd_entry *entries[GIT_STASHD_ENT_LENGTH_MAX];
+	struct git_stashd_entry *entries[GIT_STASHD_MAX_ENTRIES];
 	struct git_stashd_repository *repository;
 };
 
@@ -50,7 +49,7 @@ struct git_stashd_repository {
 
 void add_stash_entry(int *, const char *, struct git_stashd_stash *);
 char *get_git_dir(int *, const char *);
-int has_coequal_entry(int *, const char *, struct git_stashd_stash *);
+int has_match_entry(int *, const char *, struct git_stashd_stash *);
 int has_lock(int *, const char *);
 int is_worktree_dirty(int *, const char *);
 
