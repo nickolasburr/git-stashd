@@ -52,23 +52,23 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-I, --interval [NUM]</span>
+                            <span><![CDATA[-i <SEC>, --interval=<SEC>]]></span>
                         </kbd>
                     </td>
-                    <td>Interval (in seconds) to check for changes. Defaults to <code>600</code> (10 minutes).</td>
+                    <td>Interval (in seconds) to check for changes. Defaults to <code>600</code> (10 min).</td>
                 </tr>
                 <tr>
                     <td>
                         <kbd>
-                            <span>-L, --log-file [PATH]</span>
+                            <span><![CDATA[-L <PATH>, --log-file=<PATH>]]></span>
                         </kbd>
                     </td>
-                    <td>Path to alternate log file. Default location is <code>$HOME/git-stashd.log</code>.</td>
+                    <td>Alternate log file. Default path is <code>$HOME/git-stashd.log</code>.</td>
                 </tr>
                 <tr>
                     <td>
                         <kbd>
-                            <span>-M, --max-entries [NUM]</span>
+                            <span><![CDATA[-M <COUNT>, --max-entries=<COUNT>]]></span>
                         </kbd>
                     </td>
                     <td>Maximum number of entries a stash should hold<sup>&#8224;</sup></td>
@@ -76,7 +76,7 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-P, --path</span>
+                            <span><![CDATA[-p <PATH>, --path=<PATH>]]></span>
                         </kbd>
                     </td>
                     <td>Path to Git repository. Defaults to <code>cwd</code>.</td>
@@ -127,4 +127,8 @@ Start daemon in foreground for repository ``~/projects/example`` with an interva
 Footnotes
 ---------
 
-When ``--max-entries`` threshold is met, the daemon will exit.
+.. raw:: html
+
+    <div>
+        <span>&#8224;&nbsp;When <code>--max-entries</code> threshold is met, the daemon will exit.</span>
+    </div>
