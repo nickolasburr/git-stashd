@@ -127,20 +127,20 @@ Start daemon for repository ``~/projects/example``
 .. code-block:: sh
 
    # You can omit --path ~/projects/example, if currently in the ~/projects/example directory.
-   git stashd --path ~/projects/example
+   git stashd --path=~/projects/example
 
 
 Start daemon for repository ``~/projects/example`` with an interval of 30 seconds
 
 .. code-block:: sh
 
-   git stashd --path ~/projects/example --interval 30
+   git stashd --path=~/projects/example --interval=30
 
 Start daemon in foreground for repository ``~/projects/example`` with an interval of 5 minutes
 
 .. code-block:: sh
 
-   git stashd --foreground --path ~/projects/example --interval 300
+   git stashd -F --path=~/projects/example --interval=300
 
 Notes
 ---------
