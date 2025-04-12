@@ -21,8 +21,12 @@
 #define GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR "--> Error encountered when adding entry to stash."
 #define GIT_STASHD_CHECK_INDEX_STATUS_ERROR "--> Encountered an error when checking the index status."
 #define GIT_STASHD_SEARCH_EQUIV_ENTRY_ERROR "--> Error encountered when searching for equivalent entry."
+
+#define GIT_STASHD_STASH_STATUS_MAX_ENTRIES "--> Reached max entries of %d in %s. Exiting..."
+#define GIT_STASHD_WORKTREE_CHECKING_STATUS "--> Checking worktree %s @ %s"
 #define GIT_STASHD_WORKTREE_CLEAN_NO_ACTION "--> Worktree is clean, no action taken."
 #define GIT_STASHD_WORKTREE_DIRTY_NEW_ENTRY "--> Worktree is dirty, no equivalent entry. Adding new entry."
+#define GIT_STASHD_WORKTREE_DIRTY_HAS_MATCH "--> Worktree is dirty, found equivalent entry at stash@{%d}. Skipping..."
 
 void daemonize(void);
 void ftouch(int *, char *, const char *);
