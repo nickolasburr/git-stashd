@@ -9,7 +9,7 @@
 /**
  * Check if the stash has an entry with an equivalent diff of the worktree.
  */
-int has_coequal_entry(
+int has_match_entry(
 	int *error,
 	const char *path,
 	struct git_stashd_stash *s
