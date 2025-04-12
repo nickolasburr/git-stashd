@@ -71,7 +71,7 @@ Options
                             <span>-M &lt;COUNT&gt;, --max-entries=&lt;COUNT&gt;</span>
                         </kbd>
                     </td>
-                    <td>Maximum number of entries a stash should hold<sup>&#8224;</sup></td>
+                    <td>Maximum number of entries a stash should hold at any time.<sup>&#8224;</sup></td>
                 </tr>
                 <tr>
                     <td>
@@ -124,7 +124,7 @@ Start daemon in foreground for repository ``~/projects/example`` with an interva
 
    git stashd --foreground --path ~/projects/example --interval 300
 
-Footnotes
+Notes
 ---------
 
 .. raw:: html
