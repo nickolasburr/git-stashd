@@ -13,10 +13,17 @@
 
 #define GIT_STASHD_LOCK_FILE "stashd.lock"
 #define GIT_STASHD_LOCK_MODE "w+"
+
 #define GIT_STASHD_LOG_FILE "git-stashd.log"
 #define GIT_STASHD_LOG_MODE "a+"
-#define GIT_STASHD_INTERVAL 600
+
+#define GIT_STASHD_INTERVAL_DEFAULT_SEC 600
+#define GIT_STASHD_INTERVAL_LOWER_BOUND 5
+
 #define GIT_STASHD_MAX_ENTRIES 100
+
+#define GIT_STASHD_GENERATE_LOCK_FILE_ERROR "Unable to create lock file in %s. File exists."
+#define GIT_STASHD_CANNOT_LOCATE_REPO_ERROR "Unable to locate repository at %s. Please verify it is a Git repository and you have sufficient permissions.\n"
 
 #define GIT_STASHD_ADD_ENTRY_TO_STASH_ERROR "--> Error encountered when adding entry to stash."
 #define GIT_STASHD_CHECK_INDEX_STATUS_ERROR "--> Encountered an error when checking the index status."
