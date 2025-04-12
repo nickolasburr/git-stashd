@@ -52,7 +52,7 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span><![CDATA[-i <SEC>, --interval=<SEC>]]></span>
+                            <span>-i &lt;SEC&gt;, --interval=&lt;SEC&gt;</span>
                         </kbd>
                     </td>
                     <td>Interval (in seconds) to check for changes. Defaults to <code>600</code> (10 min).</td>
@@ -60,7 +60,7 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span><![CDATA[-L <PATH>, --log-file=<PATH>]]></span>
+                            <span>-L &lt;PATH&gt;, --log-file=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
                     <td>Alternate log file. Default path is <code>$HOME/git-stashd.log</code>.</td>
@@ -68,7 +68,7 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span><![CDATA[-M <COUNT>, --max-entries=<COUNT>]]></span>
+                            <span>-M &lt;COUNT&gt;, --max-entries=&lt;COUNT&gt;</span>
                         </kbd>
                     </td>
                     <td>Maximum number of entries a stash should hold<sup>&#8224;</sup></td>
@@ -76,7 +76,7 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span><![CDATA[-p <PATH>, --path=<PATH>]]></span>
+                            <span>-p &lt;PATH&gt;, --path=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
                     <td>Path to Git repository. Defaults to <code>cwd</code>.</td>
