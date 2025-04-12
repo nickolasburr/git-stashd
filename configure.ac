@@ -1,4 +1,4 @@
-AC_INIT([git-stashd], [1.0.0], [nickolasburr@gmail.com])
+AC_INIT([git-stashd], [1.0.3], [nickolasburr@gmail.com])
 
 AC_LANG([C])
 AC_CONFIG_SRCDIR(src)
