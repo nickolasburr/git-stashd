@@ -40,6 +40,13 @@ Options
 
     <blockquote>
         <table frame="void" rules="none">
+            <thead>
+                <tr>
+                    <th scope="col">Syntax</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Default</th>
+                </tr>
+            </thead>
             <tbody valign="top">
                 <tr>
                     <td>
@@ -47,7 +54,8 @@ Options
                             <span>-F, --foreground</span>
                         </kbd>
                     </td>
-                    <td>Run daemon in foreground. Helpful for debugging.</td>
+                    <td>Run daemon in foreground. Helpful for debugging or executing in a container.</td>
+                    <td>&mdash;</td>
                 </tr>
                 <tr>
                     <td>
@@ -55,7 +63,8 @@ Options
                             <span>-i &lt;SEC&gt;, --interval=&lt;SEC&gt;</span>
                         </kbd>
                     </td>
-                    <td>Interval (in seconds) to check for changes. Defaults to <code>600</code> (10 min).</td>
+                    <td>Interval in seconds to check for changes.</td>
+                    <td>600</td>
                 </tr>
                 <tr>
                     <td>
@@ -63,7 +72,10 @@ Options
                             <span>-L &lt;PATH&gt;, --log-file=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
-                    <td>Alternate log file. Default path is <code>$HOME/git-stashd.log</code>.</td>
+                    <td>Path to alternate log file.</td>
+                    <td>
+                        <code>$HOME/git-stashd.log</code>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -72,6 +84,7 @@ Options
                         </kbd>
                     </td>
                     <td>Maximum number of entries a stash should hold at any time.<sup>&#8224;</sup></td>
+                    <td>100</td>
                 </tr>
                 <tr>
                     <td>
@@ -79,7 +92,10 @@ Options
                             <span>-p &lt;PATH&gt;, --path=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
-                    <td>Path to Git repository. Defaults to <code>cwd</code>.</td>
+                    <td>Path to Git repository.</td>
+                    <td>
+                        <code>$PWD</code>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -88,6 +104,7 @@ Options
                         </kbd>
                     </td>
                     <td>Show help information and usage examples.</td>
+                    <td>&mdash;</td>
                 </tr>
                 <tr>
                     <td>
@@ -96,6 +113,7 @@ Options
                         </kbd>
                     </td>
                     <td>Show version information.</td>
+                    <td>&mdash;</td>
                 </tr>
             </tbody>
         </table>
