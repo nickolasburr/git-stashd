@@ -38,11 +38,17 @@ Options
 
 .. raw:: html
 
-    <blockquote>
+    <style>
+        blockquote[name="options"] td {
+            text-align: left;
+            vertical-align: middle;
+        }
+    </style>
+    <blockquote name="options">
         <table frame="void" rules="none">
             <thead>
                 <tr>
-                    <th scope="col">Syntax</th>
+                    <th scope="col">Option</th>
                     <th scope="col">Description</th>
                     <th scope="col">Default</th>
                 </tr>
@@ -51,7 +57,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-F, --foreground</span>
+                            <span>-F</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--foreground</span>
                         </kbd>
                     </td>
                     <td>Run daemon in foreground.</td>
@@ -60,7 +70,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-i &lt;SEC&gt;, --interval=&lt;SEC&gt;</span>
+                            <span>-i &lt;SEC&gt;</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--interval=&lt;SEC&gt;</span>
                         </kbd>
                     </td>
                     <td>Interval in seconds to check for changes.</td>
@@ -69,7 +83,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-L &lt;PATH&gt;, --log-file=&lt;PATH&gt;</span>
+                            <span>-L &lt;PATH&gt;</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--log-file=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
                     <td>Path to alternate log file.</td>
@@ -80,7 +98,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-M &lt;COUNT&gt;, --max-entries=&lt;COUNT&gt;</span>
+                            <span>-M &lt;COUNT&gt;</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--max-entries=&lt;COUNT&gt;</span>
                         </kbd>
                     </td>
                     <td>Maximum number of stash entries.<sup>&#8224;</sup></td>
@@ -89,7 +111,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-p &lt;PATH&gt;, --path=&lt;PATH&gt;</span>
+                            <span>-p &lt;PATH&gt;</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--path=&lt;PATH&gt;</span>
                         </kbd>
                     </td>
                     <td>Path to Git repository.</td>
@@ -100,7 +126,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-h, --help</span>
+                            <span>-h</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--help</span>
                         </kbd>
                     </td>
                     <td>Show help information.</td>
@@ -109,7 +139,11 @@ Options
                 <tr>
                     <td>
                         <kbd>
-                            <span>-v, --version</span>
+                            <span>-v</span>
+                        </kbd>
+                        <br>
+                        <kbd>
+                            <span>--version</span>
                         </kbd>
                     </td>
                     <td>Show version information.</td>
