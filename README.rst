@@ -38,12 +38,6 @@ Options
 
 .. raw:: html
 
-    <style>
-        blockquote[name="options"] td {
-            text-align: left;
-            vertical-align: middle;
-        }
-    </style>
     <blockquote name="options">
         <table frame="void" rules="none">
             <thead>
