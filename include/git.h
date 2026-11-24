@@ -53,7 +53,7 @@ int has_match_entry(int *, const char *, struct git_stashd_stash *);
 int has_lock(int *, const char *);
 int is_worktree_dirty(int *, const char *);
 
-git_stash_cb *init_setup(size_t, const char *, const git_oid *, void *);
+git_stash_cb *init_total(size_t, const char *, const git_oid *, void *);
 git_stash_cb *init_stash(size_t, const char *, const git_oid *, void *);
 
 char *get_current_branch(int *, const char *, char *);

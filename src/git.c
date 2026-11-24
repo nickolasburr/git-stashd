@@ -341,15 +341,12 @@ void add_stash_entry(
  * Callback function for libgit2 `git_stash_foreach`.
  * Used solely for calculating stash length.
  */
-git_stash_cb *init_setup(
+git_stash_cb *init_total(
 	size_t index,
-	const char *msg,
+	const char *message,
 	const git_oid *stash_id,
 	void *payload
 ) {
-	/**
-	 * Increment payload int pointer.
-	 */
 	(*(int *) payload)++;
 	return 0;
 }
