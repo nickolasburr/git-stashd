@@ -34,12 +34,16 @@ ifeq "$(KERNEL)" "Darwin"
 LDFLAGS += -liconv -framework CoreFoundation -framework Security
 endif
 
-.PHONY: all build clean install uninstall
+.PHONY: all build clean exec install uninstall
 
 all: $(TARGET)
 
 build:
 	@cd $(TOOLS) && ./build.sh
+
+# Rebuild executable only, link existing lib archive
+exec:
+	$(CC) $(CFLAGS) -o $(TARGET) $(CSFILES) $(LG2_ARC) $(LDFLAGS)
 
 $(LG2_ARC): build
 

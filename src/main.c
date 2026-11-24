@@ -333,7 +333,7 @@ int main (int argc, char **argv) {
 	stash_length = 0;
 	git_stash_foreach(
 		repo,
-		init_setup,
+		(git_stash_cb) init_total,
 		&stash_length
 	);
 
@@ -355,7 +355,7 @@ int main (int argc, char **argv) {
 
 	git_stash_foreach(
 		repo,
-		init_stash,
+		(git_stash_cb) init_stash,
 		stash
 	);
 

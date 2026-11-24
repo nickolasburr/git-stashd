@@ -13,13 +13,11 @@ LIB_DIR="$PROJ_DIR/lib"
 LG2_DIR="$LIB_DIR/libgit2"
 LG2_BUILD_DIR="$LG2_DIR/build"
 LG2_REPO="https://github.com/libgit2/libgit2.git"
-LG2_SHA="338e6fb681369ff0537719095e22ce9dc602dbf0"
+LG2_TAG="v1.9.2"
 
 if test ! -d "$LG2_DIR"; then
-	$GIT -C "$LIB_DIR" clone --quiet "$LG2_REPO"
+	$GIT -c advice.detachedHead=false -C "$LIB_DIR" clone --depth=1 --branch="$LG2_TAG" --quiet "$LG2_REPO"
 fi
-
-cd $LG2_DIR && $GIT checkout --quiet "$LG2_SHA"
 
 if test ! -d $LG2_BUILD_DIR; then
 	$MKDIR -p $LG2_BUILD_DIR
